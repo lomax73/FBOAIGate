@@ -67,7 +67,14 @@ bot Telegram per inviare comandi.
   `fase_8_modifiche_rifinitura.md`).
 - **Accesso SSH da questo Mac**: alias `ssh fboaigate-nuc` configurato in
   `~/.ssh/config`, chiave dedicata `~/.ssh/fboaigate_nuc` (separata da quella usata
-  per MKRemote/VPS, per coerenza con l'isolamento tra progetti).
+  per MKRemote/VPS, per coerenza con l'isolamento tra progetti). Funziona solo via
+  LAN (IP `10.0.0.169`).
+- **Accesso SSH indipendente dalla LAN (2026-08-14)**: alias
+  `ssh fboaigate-nuc-tunnel`, salta attraverso il VPS (`ProxyJump mkremote-vps`) e
+  arriva al NUC via tunnel WireGuard (`10.20.0.2`), stessa chiave. Serve perché
+  questo Mac non è un peer della VPN e non potrebbe raggiungere `10.20.0.2`
+  direttamente. Verificato funzionante (comandi + sudo) prima che l'utente
+  isolasse il NUC dalla LAN.
 
 Dettagli completi in `fase_0_fondamenta_terminato.md` e `fase_8_modifiche_rifinitura.md`.
 
