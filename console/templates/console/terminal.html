@@ -72,9 +72,13 @@ document.addEventListener('DOMContentLoaded', function () {
     var openBtn = document.getElementById('open-terminal-btn');
     if (!openBtn) return;
 
+    var warningBox = document.getElementById('warning-box');
+    var containerEl = document.getElementById('terminal-container');
+    var fullscreenBtn = document.getElementById('fullscreen-terminal-btn');
+    var closeBtn = document.getElementById('close-terminal-btn');
+
     openBtn.addEventListener('click', function () {
-        document.getElementById('warning-box').style.display = 'none';
-        var containerEl = document.getElementById('terminal-container');
+        warningBox.style.display = 'none';
         containerEl.style.display = 'block';
 
         var term = new Terminal({ cursorBlink: true, fontSize: 14 });
@@ -117,26 +121,35 @@ document.addEventListener('DOMContentLoaded', function () {
                 socket.send(JSON.stringify({ type: 'resize', cols: term.cols, rows: term.rows }));
             }
         }
-
         window.addEventListener('resize', refit);
 
-        var fullscreenBtn = document.getElementById('fullscreen-terminal-btn');
-        fullscreenBtn.addEventListener('click', function () {
+        function onFullscreenClick() {
             var maximized = containerEl.classList.toggle('maximized');
             fullscreenBtn.textContent = maximized ? 'Esci da schermo intero' : 'Schermo intero';
             // Il ridimensionamento del div avviene per CSS: aspetta il repaint
             // prima di ricalcolare righe/colonne, altrimenti fit() usa le
             // dimensioni vecchie.
             requestAnimationFrame(refit);
-        });
+        }
+        fullscreenBtn.addEventListener('click', onFullscreenClick);
 
-        document.getElementById('close-terminal-btn').addEventListener('click', function () {
+        function onPageHide() {
             socket.close();
-        });
+        }
+        window.addEventListener('pagehide', onPageHide);
 
-        window.addEventListener('pagehide', function () {
+        function closeAndReset() {
             socket.close();
-        });
+            window.removeEventListener('resize', refit);
+            window.removeEventListener('pagehide', onPageHide);
+            fullscreenBtn.removeEventListener('click', onFullscreenClick);
+            term.dispose();
+            containerEl.classList.remove('maximized');
+            fullscreenBtn.textContent = 'Schermo intero';
+            containerEl.style.display = 'none';
+            warningBox.style.display = 'block';
+        }
+        closeBtn.addEventListener('click', closeAndReset, { once: true });
     });
 });
 </script>
