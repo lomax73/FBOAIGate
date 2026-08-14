@@ -15,19 +15,27 @@ from .models import SessioneTerminale
 # Sessione tmux condivisa per Target: se il WebSocket cade (rete, chiusura
 # scheda) il processo lanciato dentro (es. `claude` mentre elabora) continua a
 # girare sull'host, e la si ritrova riaprendo il terminale — non serve
-# ricordarsi comandi tmux a mano. Ogni tab del browser è una finestra tmux
-# diversa nella stessa sessione (nome non puramente numerico, per non essere
-# scambiato da tmux per un indice — vedi routing.py per il vincolo sul nome).
+# ricordarsi comandi tmux a mano. Ogni tab del browser ha una propria finestra
+# tmux, ma NON si aggancia direttamente alla sessione base: tmux sincronizza
+# la "finestra corrente" fra tutti i client di una stessa sessione, quindi
+# cambiare tab in un client la cambierebbe per tutti. Ogni tab usa invece una
+# sessione "raggruppata" (`new-session -t`), che condivide l'insieme di
+# finestre della sessione base ma tiene una finestra corrente indipendente
+# per client — è il modo con cui tmux supporta client multipli indipendenti
+# sullo stesso set di finestre. Nome non puramente numerico, per non essere
+# scambiato da tmux per un indice — vedi routing.py per il vincolo sul nome.
 TMUX_SESSION_NAME = 'fboaigate'
 TAB_NAME_RE = re.compile(r'^[A-Za-z_][\w-]{0,31}$')
 
 
 def _tmux_attach_command(tab: str) -> str:
+    tab_session = f'{TMUX_SESSION_NAME}-{tab}'
     return (
         f'tmux new-session -d -s {TMUX_SESSION_NAME} 2>/dev/null; '
-        f'tmux select-window -t {TMUX_SESSION_NAME}:{tab} 2>/dev/null '
-        f'|| tmux new-window -t {TMUX_SESSION_NAME} -n {tab}; '
-        f'exec tmux attach-session -t {TMUX_SESSION_NAME}'
+        f'tmux new-window -dt {TMUX_SESSION_NAME} -n {tab} 2>/dev/null; '
+        f'tmux new-session -d -s {tab_session} -t {TMUX_SESSION_NAME} 2>/dev/null; '
+        f'tmux select-window -t {tab_session}:{tab}; '
+        f'exec tmux attach-session -t {tab_session}'
     )
 
 
