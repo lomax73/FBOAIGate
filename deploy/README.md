@@ -8,21 +8,10 @@ ASGI (Channels/Daphne, per il terminale WebSocket in Fase 2), non WSGI.
 
 Deployato su `https://aigate.fbosolution.it/` (VPS `94.177.161.127`, stesso VPS
 di MKRemote/FBOPortal, hub WireGuard `wg1` separato — vedi STATO.md). Certificato
-**self-signed provvisorio**: il DNS del sottodominio non era ancora propagato al
-momento del primo deploy (2026-08-14). Passare a Let's Encrypt appena confermato:
-
-```
-ssh mkremote-vps
-sudo certbot --nginx -d aigate.fbosolution.it
-```
-
-**Accesso provvisorio via IP mentre il DNS non è pronto**:
-`https://94.177.161.127:8451/` (cert self-signed, il browser avvisa — è normale).
-Vhost dedicato `deploy/nginx-fboaigate-ip-provisional.conf`, stesso pattern usato
-inizialmente da FBOPortal. Porta `8451` scelta perché `8443`-`8450` sono già
-occupate da altre app/usi interni sullo stesso VPS (controllare sempre con
-`ss -tlnp | grep 84` prima di aggiungerne una nuova). Da rimuovere (vhost +
-regola UFW) appena il DNS vero è confermato funzionante.
+**Let's Encrypt vero** dal 2026-08-14 (rinnovo automatico via certbot, scade
+2026-11-12). Il primo deploy (stesso giorno) era partito con un self-signed
+provvisorio perché il DNS non era ancora propagato — l'accesso provvisorio via
+IP:porta usato in quella finestra è stato rimosso appena confermato il DNS.
 
 ## Provisioning iniziale (una tantum, già fatto il 2026-08-14)
 

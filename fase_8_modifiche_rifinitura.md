@@ -12,12 +12,10 @@ seguire l'ordine numerico: si aggiorna in continuazione.
   (`/opt/fboaigate/.ssh/console_service`, generata lì). La chiave del Mac resta
   autorizzata sul NUC per comodità di test futuri, ma andrebbe rimossa
   (`~/.ssh/authorized_keys` sul NUC) quando non serve più, per igiene.
-- **DNS `aigate.fbosolution.it` non ancora propagato** (verificato 2026-08-14
-  anche sull'authoritative nameserver Aruba: nessun record A). L'utente ha
-  detto di averlo già creato lato pannello Aruba. Deploy fatto comunque con
-  certificato self-signed provvisorio (stesso pattern usato inizialmente da
-  FBOPortal) — appena il DNS risolve, sostituire con Let's Encrypt
-  (`certbot --nginx -d aigate.fbosolution.it` sul VPS).
+- ~~DNS `aigate.fbosolution.it` non ancora propagato~~ — **risolto (2026-08-14,
+  stessa giornata)**: propagato durante la sessione, certificato Let's Encrypt
+  ottenuto (`certbot --nginx -d aigate.fbosolution.it`), rimosso l'accesso
+  provvisorio via IP:porta.
 
 - ~~Stato online/offline del Target non è "live"~~ — **risolto (2026-08-14)**:
   `hub/services.py:refresh_target_status` fa un controllo TCP sulla porta SSH

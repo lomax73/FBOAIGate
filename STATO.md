@@ -44,8 +44,9 @@ bot Telegram per inviare comandi.
   verificate, `collectstatic` + restart di `portal-web.service` fatti, riga creata nel DB
   di produzione). La card è visibile su `https://94.177.161.127:8443/` (URL provvisorio,
   non c'è ancora un dominio vero — vedi `FBOPortal/deploy/README.md`).
-  L'URL della card punta a `https://aigate.fbosolution.it/`, che **non esiste ancora**:
-  cliccandoci sopra per ora dà errore, normale finché non arriviamo alla Fase 3.
+  L'URL della card punta a `https://aigate.fbosolution.it/`, che **ora esiste
+  davvero** (deploy fatto, vedi sezione Fase 2/deploy più sotto) — cliccandoci
+  sopra porta al login di FBOAIGate.
 - Durante il deploy è emerso che il VPS aveva una funzionalità ("stati app"/badge
   colorato) sviluppata direttamente in produzione e mai committata su Git. Verificata
   file per file: era identica a quanto già presente su GitHub. Messa al sicuro con
@@ -115,42 +116,54 @@ personali degli amministratori.
 - Aperto: `Target.online` non è aggiornato da un controllo reale (probabile
   territorio Fase 5) — vedi fase_8.
 
-## Deploy in produzione (2026-08-14)
+## Deploy in produzione — stato al 2026-08-14 sera
 
 `https://aigate.fbosolution.it/` — VPS `94.177.161.127` (stesso di MKRemote,
 hub `wg1` separato), utente di sistema `fboaigate`, Postgres, Daphne dietro
 Nginx (systemd `fboaigate-web.service`). Procedura completa in
 `deploy/README.md`.
 
-- **Certificato self-signed provvisorio**: il DNS di `aigate.fbosolution.it`
-  non era ancora propagato al momento del deploy (verificato anche
-  sull'authoritative nameserver Aruba: nessun record). L'utente ha detto di
-  averlo già creato lato Aruba — da ricontrollare/attivare Let's Encrypt
-  (`certbot --nginx -d aigate.fbosolution.it`) appena risolve.
-- **Verificato end-to-end in produzione**: login, elenco host, apertura
-  terminale via WebSocket → Nginx → Daphne → `asyncssh` → NUC attraverso
-  `wg1`/`wg0`, autenticazione con la chiave di servizio riuscita, shell
-  interattiva aperta, sessione chiusa e loggata correttamente in
-  `SessioneTerminale` alla disconnessione. **Fase 2 sostanzialmente
-  completa**, salvo il gap sullo stato online/offline "live" (vedi sopra).
-- Superuser di produzione: `admin` (email f.lomazzi@fbosolution.it),
-  password generata e comunicata all'utente in chat — da cambiare al primo
-  accesso.
+- **Certificato TLS vero** (Let's Encrypt, rinnovo automatico, scade
+  2026-11-12) — il DNS si è propagato durante la sessione, sostituito il
+  self-signed provvisorio, rimosso l'accesso via IP:porta usato nel frattempo.
+- **Login**: `admin` / `Faba7377` (password cambiata su richiesta esplicita
+  dell'utente — nota: stessa password usata per il sudo/SSH del NUC, riuso
+  segnalato ma voluto).
+- **Fase 2 verificata end-to-end e ampliata oltre i criteri minimi**:
+  - terminale via WebSocket → Nginx → Daphne → `asyncssh` → Target, chiave di
+    servizio, sessioni loggate in `SessioneTerminale`;
+  - stato online/offline **live** (`hub/services.py:refresh_target_status`,
+    check TCP sulla porta SSH ad ogni caricamento della lista, non più un
+    valore statico);
+  - pannello risorse (carico/memoria/disco) nella pagina terminale, aggiornato
+    ogni 10s (`hub/services.py:fetch_resource_usage`, endpoint JSON async
+    `TargetResourcesView`);
+  - rinomina host dalla lista (`TargetRenameView`);
+  - **persistenza tramite tmux**: il terminale si aggancia a una sessione
+    tmux sull'host (`console/consumers.py:TMUX_SESSION_COMMAND`) — un
+    processo lasciato in esecuzione (es. `claude` mentre elabora) sopravvive
+    alla chiusura della scheda/WebSocket, verificato empiricamente. Richiede
+    `tmux` installato sul Target (fatto sul NUC, annotato come prerequisito
+    di onboarding in `deploy/README.md`).
+  - integrazione **FBOFlag** (bandierina di segnalazione bug), stesso pattern
+    delle altre app FBO — solo snippet client-side in `templates/base.html`.
 - Chiave SSH di servizio della console generata **sul VPS stesso**
-  (`/opt/fboaigate/.ssh/console_service`), autorizzata sul NUC. Nota:
-  resta autorizzata sul NUC anche la chiave di sviluppo generata sul Mac
-  (usata per i test locali prima del deploy) — pulizia rimandata, vedi fase_8.
+  (`/opt/fboaigate/.ssh/console_service`), autorizzata sul NUC. Nota: resta
+  autorizzata sul NUC anche la chiave di sviluppo generata sul Mac (usata per
+  i test locali prima del deploy) — pulizia rimandata, vedi fase_8.
+- **Accesso SSH al NUC ora possibile solo via tunnel**: l'utente ha isolato
+  il NUC dalla LAN di casa (restava sulla stessa rete, solo non più
+  raggiungibile da questo Mac). Uso `ssh fboaigate-nuc-tunnel` (ProxyJump via
+  VPS), verificato funzionante prima dell'isolamento.
 
 ## Prossimo passo
 
-Due filoni aperti in parallelo:
-1. **Fase 1**: lasciare il tunnel in osservazione un paio di giorni, poi tornare
-   sul punto 5 di `fase_1_tunnel_sicuro_esecuzione.md` (firewall + lockdown SSH).
-   Non procedere prima di allora senza conferma esplicita.
-2. **Fase 2**: verificata end-to-end in produzione. Resta da decidere se
-   chiuderla come `_terminato` accettando il gap sullo stato "live" (rimandato
-   a Fase 5) o se affrontarlo prima — da chiedere all'utente. Resta anche da
-   sistemare il certificato TLS vero (Let's Encrypt) appena il DNS è pronto.
+1. **Fase 1**: tunnel in osservazione, poi punto 5 (firewall + lockdown SSH
+   sul NUC) di `fase_1_tunnel_sicuro_esecuzione.md`. Non procedere senza
+   conferma esplicita dell'utente.
+2. **Fase 2**: nella pratica ampiamente superata dai criteri minimi (vedi
+   sopra) — da chiudere formalmente come `_terminato` quando l'utente
+   conferma di non avere altro da aggiungere.
 
 ## File del progetto
 
