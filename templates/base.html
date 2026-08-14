@@ -31,5 +31,11 @@
 <main>
 {% block content %}{% endblock %}
 </main>
+<script>
+  window.FBOFLAG_APP = "fboaigate";
+  window.FBOFLAG_USER = "{{ request.user.username|default:'' }}";
+  window.FBOFLAG_HUB = "https://feedback.fbosolution.it";
+</script>
+<script src="https://feedback.fbosolution.it/static/fboflag.js" defer></script>
 </body>
 </html>
