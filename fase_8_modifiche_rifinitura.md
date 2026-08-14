@@ -19,15 +19,15 @@ seguire l'ordine numerico: si aggiorna in continuazione.
   FBOPortal) — appena il DNS risolve, sostituire con Let's Encrypt
   (`certbot --nginx -d aigate.fbosolution.it` sul VPS).
 
-- **Stato online/offline del Target non è "live"** (Fase 2, 2026-08-14): il campo
-  `Target.online` è statico (impostato a mano in fase di registrazione), non
-  aggiornato da un controllo periodico reale. Il criterio di completamento della
-  Fase 2 ("elenco host mostrato correttamente con stato aggiornato") è quindi solo
-  parzialmente soddisfatto: la UI mostra il campo, ma nulla lo tiene sincronizzato
-  col tunnel WireGuard vero. Rimandato apposta: un vero controllo di stato
-  (heartbeat/polling) sembra territorio della Fase 5 (hardening/monitoring), non
-  della Fase 2. Da confermare con l'utente quando si arriva lì, o prima se serve
-  prima.
+- ~~Stato online/offline del Target non è "live"~~ — **risolto (2026-08-14)**:
+  `hub/services.py:refresh_target_status` fa un controllo TCP sulla porta SSH
+  (timeout 1.5s) di ogni Target quando si carica la lista host, aggiornando
+  `online`/`ultimo_contatto` sul momento. Nessuno scheduler/cron: il check
+  gira sincrono dentro la request, va bene per pochi host. Funziona solo da
+  un host che ha davvero una rotta verso la VPN (il VPS in produzione); dal
+  Mac di sviluppo risulterà sempre offline, per costruzione. Se in futuro il
+  numero di host cresce parecchio, considerare di parallelizzare i check o
+  spostarli su un vero polling in background (Fase 5) — non necessario ora.
 - **Console (Fase 2) testata solo in parte in locale**: il Mac di sviluppo non fa
   parte della VPN `wg1`/`wg0` di FBOAIGate, quindi non può raggiungere
   `10.20.0.2` direttamente. Verificato invece: (1) l'intera catena

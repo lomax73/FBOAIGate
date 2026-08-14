@@ -5,7 +5,7 @@
 {% if targets %}
 <table>
     <thead>
-        <tr><th>Stato</th><th>Nome</th><th>IP VPN</th><th></th><th></th></tr>
+        <tr><th>Stato</th><th>Nome</th><th>IP VPN</th><th>Ultimo contatto</th><th></th><th></th></tr>
     </thead>
     <tbody>
         {% for target in targets %}
@@ -13,6 +13,7 @@
             <td><span class="dot {% if target.online %}dot-online{% else %}dot-offline{% endif %}"></span>{% if target.online %}Online{% else %}Offline{% endif %}</td>
             <td>{{ target.nome }}</td>
             <td>{{ target.vpn_ip }}</td>
+            <td>{{ target.ultimo_contatto|default:"mai" }}</td>
             <td><a class="btn" href="{% url 'target-terminal' target.pk %}">Apri terminale</a></td>
             <td><a href="{% url 'target-rename' target.pk %}">Rinomina</a></td>
         </tr>
