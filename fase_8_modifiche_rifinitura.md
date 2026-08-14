@@ -5,13 +5,14 @@ seguire l'ordine numerico: si aggiorna in continuazione.
 
 ## Aperti
 
-- **Fase 1, punto 5 (firewall + SSH solo su wg0) — sospeso, da discutere prima di
-  attivarlo** (2026-08-14): tunnel WireGuard NUC↔hub verificato e funzionante (vedi
-  sotto), ma il blocco dell'accesso pubblico SSH non è ancora stato applicato su
-  richiesta esplicita dell'utente ("il punto 5 ne discutiamo prima di attivarlo").
+- **Fase 1, punto 5 (firewall + SSH solo su wg0) — rimandato di un paio di giorni**
+  (deciso con l'utente 2026-08-14): tunnel WireGuard NUC↔hub verificato e
+  funzionante, ma il blocco dell'accesso pubblico SSH è rimandato apposta: prima si
+  lascia il tunnel girare qualche giorno per verificarne la stabilità (riconnessione
+  automatica dopo cadute di rete, riavvii, ecc.), poi si procede col lockdown.
   Rischio noto: una volta applicato, se il tunnel dovesse cadere il NUC diventerebbe
   irraggiungibile da remoto (richiederebbe accesso fisico). Non procedere senza
-  conferma esplicita.
+  conferma esplicita dell'utente.
 - **Hub VPN condiviso fisicamente col VPS di MKRemote, isolato logicamente**
   (2026-08-14, confermato con l'utente): interfaccia `wg1` separata da `wg0`
   (MKRemote), porta `51821` invece di `51820`, subnet `10.20.0.0/24`. Nessuna

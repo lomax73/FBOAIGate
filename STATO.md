@@ -92,8 +92,10 @@ Dettagli completi in `fase_0_fondamenta_terminato.md` e `fase_8_modifiche_rifini
 
 ## Prossimo passo
 
-Riprendere la discussione sul punto 5 di `fase_1_tunnel_sicuro_esecuzione.md`
-(firewall + lockdown SSH) con l'utente prima di procedere.
+Deciso con l'utente (2026-08-14): lasciare il tunnel in osservazione un paio di
+giorni per verificarne la stabilità, poi tornare sul punto 5 di
+`fase_1_tunnel_sicuro_esecuzione.md` (firewall + lockdown SSH). Non procedere prima
+di allora senza conferma esplicita.
 
 ## File del progetto
 
