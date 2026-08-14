@@ -25,10 +25,14 @@
 </div>
 
 <div id="terminal-container" style="display:none; margin-top:1rem;">
-    <div id="terminal" style="background:#000; padding:0.5rem; border-radius:8px; height:70vh;"></div>
+    <div id="tabs-bar" style="display:flex; gap:0.35rem; align-items:center; margin-bottom:0.5rem; flex-wrap:wrap;">
+        <div id="tab-buttons" style="display:flex; gap:0.35rem; flex-wrap:wrap;"></div>
+        <button class="btn" id="tab-add-btn" title="Apri una nuova tab">+</button>
+    </div>
+    <div id="terminal-mount" style="height:70vh;"></div>
     <p id="terminal-status" style="color:#64748b; font-size:0.85rem;"></p>
     <button class="btn" id="fullscreen-terminal-btn">Schermo intero</button>
-    <button class="btn btn-danger" id="close-terminal-btn">Chiudi sessione</button>
+    <button class="btn btn-danger" id="close-terminal-btn">Chiudi questa tab</button>
 </div>
 
 <style>
@@ -42,7 +46,13 @@
     display: flex;
     flex-direction: column;
 }
-#terminal-container.maximized #terminal { flex: 1 1 auto; height: auto; }
+#terminal-container.maximized #terminal-mount { flex: 1 1 auto; height: auto; }
+.tab-pane { background:#000; padding:0.5rem; border-radius:8px; height:100%; }
+.tab-btn {
+    background: #1e293b; color: #94a3b8; border: 1px solid #334155;
+    border-radius: 6px; padding: 0.35rem 0.75rem; cursor: pointer; font-size: 0.85rem;
+}
+.tab-btn.active { background: #2563eb; color: #fff; border-color: #2563eb; }
 </style>
 
 <script>
@@ -74,18 +84,42 @@ document.addEventListener('DOMContentLoaded', function () {
 
     var warningBox = document.getElementById('warning-box');
     var containerEl = document.getElementById('terminal-container');
+    var mountEl = document.getElementById('terminal-mount');
+    var tabButtonsEl = document.getElementById('tab-buttons');
+    var addTabBtn = document.getElementById('tab-add-btn');
     var fullscreenBtn = document.getElementById('fullscreen-terminal-btn');
     var closeBtn = document.getElementById('close-terminal-btn');
+    var statusEl = document.getElementById('terminal-status');
 
-    openBtn.addEventListener('click', function () {
-        warningBox.style.display = 'none';
-        containerEl.style.display = 'block';
+    var tabs = {};       // nome -> { term, socket, fitAddon, paneEl, btnEl, refit }
+    var activeTab = null;
+    var tabCounter = 0;
+
+    function switchToTab(name) {
+        Object.keys(tabs).forEach(function (key) {
+            tabs[key].paneEl.style.display = key === name ? 'block' : 'none';
+            tabs[key].btnEl.classList.toggle('active', key === name);
+        });
+        activeTab = name;
+        requestAnimationFrame(function () {
+            tabs[name].refit();
+            tabs[name].term.focus();
+        });
+    }
+
+    function openTab() {
+        tabCounter++;
+        var name = 'tab' + tabCounter;
+
+        var pane = document.createElement('div');
+        pane.className = 'tab-pane';
+        pane.style.display = 'none';
+        mountEl.appendChild(pane);
 
         var term = new Terminal({ cursorBlink: true, fontSize: 14 });
         var fitAddon = new FitAddon.FitAddon();
         term.loadAddon(fitAddon);
-        term.open(document.getElementById('terminal'));
-        fitAddon.fit();
+        term.open(pane);
 
         // Copia/incolla: di default xterm.js intercetta sempre Ctrl/Cmd+C
         // (lo manda come segnale d'interruzione al processo remoto, mai come
@@ -125,13 +159,15 @@ document.addEventListener('DOMContentLoaded', function () {
         // Ctrl+V non ha un campo attivo su cui incollare. La selezione resta
         // valida comunque (non dipende dal focus), quindi si può ripristinare
         // il focus subito dopo senza perderla.
-        document.getElementById('terminal').addEventListener('mouseup', function () {
+        pane.addEventListener('mouseup', function () {
             setTimeout(function () { term.focus(); }, 0);
         });
 
-        var statusEl = document.getElementById('terminal-status');
         var protocol = location.protocol === 'https:' ? 'wss://' : 'ws://';
-        var socket = new WebSocket(protocol + location.host + '/ws/terminal/{{ target.pk }}/');
+        // Ogni tab si aggancia a una finestra tmux diversa nella stessa
+        // sessione remota (vedi console/consumers.py): sopravvive alla
+        // chiusura della pagina esattamente come la tab singola di prima.
+        var socket = new WebSocket(protocol + location.host + '/ws/terminal/{{ target.pk }}/' + name + '/');
 
         socket.onopen = function () {
             statusEl.textContent = 'Connesso.';
@@ -145,10 +181,10 @@ document.addEventListener('DOMContentLoaded', function () {
             }
         };
         socket.onclose = function () {
-            statusEl.textContent = 'Sessione terminata.';
+            if (activeTab === name) statusEl.textContent = 'Sessione terminata.';
         };
         socket.onerror = function () {
-            statusEl.textContent = 'Errore di connessione.';
+            if (activeTab === name) statusEl.textContent = 'Errore di connessione.';
         };
 
         term.onData(function (data) {
@@ -163,35 +199,66 @@ document.addEventListener('DOMContentLoaded', function () {
                 socket.send(JSON.stringify({ type: 'resize', cols: term.cols, rows: term.rows }));
             }
         }
-        window.addEventListener('resize', refit);
 
-        function onFullscreenClick() {
-            var maximized = containerEl.classList.toggle('maximized');
-            fullscreenBtn.textContent = maximized ? 'Esci da schermo intero' : 'Schermo intero';
-            // Il ridimensionamento del div avviene per CSS: aspetta il repaint
-            // prima di ricalcolare righe/colonne, altrimenti fit() usa le
-            // dimensioni vecchie.
-            requestAnimationFrame(refit);
-        }
-        fullscreenBtn.addEventListener('click', onFullscreenClick);
+        var btn = document.createElement('button');
+        btn.className = 'tab-btn';
+        btn.textContent = tabCounter;
+        btn.title = name;
+        btn.addEventListener('click', function () { switchToTab(name); });
+        tabButtonsEl.appendChild(btn);
 
-        function onPageHide() {
-            socket.close();
-        }
-        window.addEventListener('pagehide', onPageHide);
+        tabs[name] = { term: term, socket: socket, fitAddon: fitAddon, paneEl: pane, btnEl: btn, refit: refit };
+        switchToTab(name);
+    }
 
-        function closeAndReset() {
-            socket.close();
-            window.removeEventListener('resize', refit);
-            window.removeEventListener('pagehide', onPageHide);
-            fullscreenBtn.removeEventListener('click', onFullscreenClick);
-            term.dispose();
+    window.addEventListener('resize', function () {
+        if (activeTab && tabs[activeTab]) tabs[activeTab].refit();
+    });
+
+    function onFullscreenClick() {
+        var maximized = containerEl.classList.toggle('maximized');
+        fullscreenBtn.textContent = maximized ? 'Esci da schermo intero' : 'Schermo intero';
+        // Il ridimensionamento del div avviene per CSS: aspetta il repaint
+        // prima di ricalcolare righe/colonne, altrimenti fit() usa le
+        // dimensioni vecchie.
+        requestAnimationFrame(function () {
+            if (activeTab && tabs[activeTab]) tabs[activeTab].refit();
+        });
+    }
+    fullscreenBtn.addEventListener('click', onFullscreenClick);
+
+    window.addEventListener('pagehide', function () {
+        Object.keys(tabs).forEach(function (name) { tabs[name].socket.close(); });
+    });
+
+    addTabBtn.addEventListener('click', openTab);
+
+    closeBtn.addEventListener('click', function () {
+        if (!activeTab) return;
+        var name = activeTab;
+        var t = tabs[name];
+        t.socket.close();
+        t.term.dispose();
+        t.paneEl.remove();
+        t.btnEl.remove();
+        delete tabs[name];
+
+        var remaining = Object.keys(tabs);
+        if (remaining.length) {
+            switchToTab(remaining[0]);
+        } else {
             containerEl.classList.remove('maximized');
             fullscreenBtn.textContent = 'Schermo intero';
             containerEl.style.display = 'none';
             warningBox.style.display = 'block';
+            activeTab = null;
         }
-        closeBtn.addEventListener('click', closeAndReset, { once: true });
+    });
+
+    openBtn.addEventListener('click', function () {
+        warningBox.style.display = 'none';
+        containerEl.style.display = 'block';
+        openTab();
     });
 });
 </script>

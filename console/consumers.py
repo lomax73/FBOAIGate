@@ -1,5 +1,6 @@
 import asyncio
 import json
+import re
 
 import asyncssh
 from channels.db import database_sync_to_async
@@ -14,9 +15,20 @@ from .models import SessioneTerminale
 # Sessione tmux condivisa per Target: se il WebSocket cade (rete, chiusura
 # scheda) il processo lanciato dentro (es. `claude` mentre elabora) continua a
 # girare sull'host, e la si ritrova riaprendo il terminale — non serve
-# ricordarsi comandi tmux a mano. `-A` crea la sessione se non esiste, altrimenti
-# vi si riaggancia.
-TMUX_SESSION_COMMAND = 'tmux new-session -A -s fboaigate'
+# ricordarsi comandi tmux a mano. Ogni tab del browser è una finestra tmux
+# diversa nella stessa sessione (nome non puramente numerico, per non essere
+# scambiato da tmux per un indice — vedi routing.py per il vincolo sul nome).
+TMUX_SESSION_NAME = 'fboaigate'
+TAB_NAME_RE = re.compile(r'^[A-Za-z_][\w-]{0,31}$')
+
+
+def _tmux_attach_command(tab: str) -> str:
+    return (
+        f'tmux new-session -d -s {TMUX_SESSION_NAME} 2>/dev/null; '
+        f'tmux select-window -t {TMUX_SESSION_NAME}:{tab} 2>/dev/null '
+        f'|| tmux new-window -t {TMUX_SESSION_NAME} -n {tab}; '
+        f'exec tmux attach-session -t {TMUX_SESSION_NAME}'
+    )
 
 
 class TerminalConsumer(AsyncWebsocketConsumer):
@@ -37,6 +49,11 @@ class TerminalConsumer(AsyncWebsocketConsumer):
             return
 
         target_pk = self.scope['url_route']['kwargs']['pk']
+        tab = self.scope['url_route']['kwargs']['tab']
+        if not TAB_NAME_RE.match(tab):
+            await self.close()
+            return
+
         self.target = await self._get_target(target_pk)
         if self.target is None:
             await self.close()
@@ -55,7 +72,7 @@ class TerminalConsumer(AsyncWebsocketConsumer):
                 # dell'host key SSH sopra a quello.
                 known_hosts=None,
             )
-            self.ssh_process = await self.ssh_conn.create_process(TMUX_SESSION_COMMAND, term_type='xterm')
+            self.ssh_process = await self.ssh_conn.create_process(_tmux_attach_command(tab), term_type='xterm')
         except Exception as exc:
             await self._chiudi_sessione(errore=str(exc))
             await self._send_output(f'\r\n[Errore di connessione SSH: {exc}]\r\n')
