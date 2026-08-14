@@ -102,6 +102,16 @@ document.addEventListener('DOMContentLoaded', function () {
             return true;
         });
 
+        // Dopo aver selezionato del testo col mouse (Shift+trascina, per
+        // bypassare la mouse-tracking di app come Claude Code) il campo di
+        // input nascosto di xterm.js perde il focus: senza rimetterlo,
+        // Ctrl+V non ha un campo attivo su cui incollare. La selezione resta
+        // valida comunque (non dipende dal focus), quindi si può ripristinare
+        // il focus subito dopo senza perderla.
+        document.getElementById('terminal').addEventListener('mouseup', function () {
+            setTimeout(function () { term.focus(); }, 0);
+        });
+
         var statusEl = document.getElementById('terminal-status');
         var protocol = location.protocol === 'https:' ? 'wss://' : 'ws://';
         var socket = new WebSocket(protocol + location.host + '/ws/terminal/{{ target.pk }}/');
