@@ -20,6 +20,11 @@ IP:porta usato in quella finestra è stato rimosso appena confermato il DNS.
 adduser --system --group --home /opt/fboaigate fboaigate
 mkdir -p /opt/fboaigate/app
 chown fboaigate:fboaigate /opt/fboaigate/app
+# adduser crea la home con permessi 750: Nginx (www-data) non può attraversarla
+# per servire gli static file. Serve almeno l'execute per "altri" (stesso
+# pattern di /opt/mkremote, che è 751). Bug reale trovato il 2026-08-14: tutti
+# gli static file locali (logo, CSS dell'admin) davano 403 finché non fatto.
+chmod o+x /opt/fboaigate
 
 sudo -u fboaigate git clone https://github.com/lomax73/FBOAIGate.git /opt/fboaigate/app
 cd /opt/fboaigate/app
