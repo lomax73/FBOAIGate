@@ -108,6 +108,10 @@ di allora senza conferma esplicita.
 
 ## Riferimenti tecnici utili
 
+- Repo FBOAIGate (questo progetto): `https://github.com/lomax73/FBOAIGate`, branch
+  `main`. Pubblico, coerente con FBOPortal/MKRemote. Nessun link sulla card
+  FBOPortal per scelta esplicita dell'utente (2026-08-14): il repo è ad uso
+  interno/sviluppo, non va esposto sulla card pubblica.
 - Repo FBOPortal: `https://github.com/lomax73/FBOPortal.git`, branch `main`.
 - Alias SSH al VPS di produzione: `ssh mkremote-vps` (config in `~/.ssh/config`,
   `HostName 94.177.161.127`).
