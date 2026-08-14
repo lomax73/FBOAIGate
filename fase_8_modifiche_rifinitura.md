@@ -5,6 +5,28 @@ seguire l'ordine numerico: si aggiorna in continuazione.
 
 ## Aperti
 
+- **Stato online/offline del Target non è "live"** (Fase 2, 2026-08-14): il campo
+  `Target.online` è statico (impostato a mano in fase di registrazione), non
+  aggiornato da un controllo periodico reale. Il criterio di completamento della
+  Fase 2 ("elenco host mostrato correttamente con stato aggiornato") è quindi solo
+  parzialmente soddisfatto: la UI mostra il campo, ma nulla lo tiene sincronizzato
+  col tunnel WireGuard vero. Rimandato apposta: un vero controllo di stato
+  (heartbeat/polling) sembra territorio della Fase 5 (hardening/monitoring), non
+  della Fase 2. Da confermare con l'utente quando si arriva lì, o prima se serve
+  prima.
+- **Console (Fase 2) testata solo in parte in locale**: il Mac di sviluppo non fa
+  parte della VPN `wg1`/`wg0` di FBOAIGate, quindi non può raggiungere
+  `10.20.0.2` direttamente. Verificato invece: (1) l'intera catena
+  login→WebSocket→consumer è cablata correttamente (WS accettato, `asyncssh`
+  invocato con l'host giusto, log lato server confermano il tentativo); (2)
+  l'autenticazione SSH con la chiave di servizio funziona davvero, testato con
+  uno script `asyncssh` eseguito direttamente dal VPS (che ha la rotta via
+  `wg1`) verso il NUC — output: `whoami`/`hostname` corretti. Non è stato
+  verificato il flusso completo dal browser reale (xterm.js + digitazione
+  interattiva) perché richiederebbe deploy sul VPS o aggiunta del Mac come peer
+  VPN — nessuna delle due fatta di proposito, per non allargare lo scope della
+  fase. Da fare al primo deploy reale su VPS.
+
 - **Fase 1, punto 5 (firewall + SSH solo su wg0) — rimandato di un paio di giorni**
   (deciso con l'utente 2026-08-14): tunnel WireGuard NUC↔hub verificato e
   funzionante, ma il blocco dell'accesso pubblico SSH è rimandato apposta: prima si

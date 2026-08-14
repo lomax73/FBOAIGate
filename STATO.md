@@ -90,12 +90,32 @@ Dettagli completi in `fase_0_fondamenta_terminato.md` e `fase_8_modifiche_rifini
   che generi lo script di onboarding per nuovi host (stesso pattern di MKRemote,
   vedi fase_8) — da fare quando si arriva alla UI (Fase 2/3), non ora.
 
+## Fase 2 — in corso in parallelo (2026-08-14): console browser
+
+Backend Channels (`console` app) + frontend xterm.js, stesso pattern di
+`terminal/` in MKRemote ma con autenticazione a chiave (non user/pass): il
+backend usa una chiave SSH di servizio propria (`CONSOLE_SSH_PRIVATE_KEY_PATH`,
+generata su questo Mac per sviluppo, autorizzata sul NUC), distinta dalle chiavi
+personali degli amministratori.
+
+- Login, elenco host, apertura pagina terminale: testati in locale (Daphne, non
+  `runserver` — Channels richiede ASGI esplicito).
+- Catena WebSocket→consumer→`asyncssh`: verificata cablata correttamente.
+- Autenticazione SSH con la chiave di servizio: verificata **funzionante**, ma
+  testata dal VPS (dentro la VPN), non dal Mac di sviluppo (fuori dalla VPN,
+  non può raggiungere `10.20.0.2`). Il flusso completo dal browser reale non è
+  stato ancora provato — richiede deploy su VPS. Vedi dettagli in fase_8.
+- Aperto: `Target.online` non è aggiornato da un controllo reale (probabile
+  territorio Fase 5) — vedi fase_8.
+
 ## Prossimo passo
 
-Deciso con l'utente (2026-08-14): lasciare il tunnel in osservazione un paio di
-giorni per verificarne la stabilità, poi tornare sul punto 5 di
-`fase_1_tunnel_sicuro_esecuzione.md` (firewall + lockdown SSH). Non procedere prima
-di allora senza conferma esplicita.
+Due filoni aperti in parallelo:
+1. **Fase 1**: lasciare il tunnel in osservazione un paio di giorni, poi tornare
+   sul punto 5 di `fase_1_tunnel_sicuro_esecuzione.md` (firewall + lockdown SSH).
+   Non procedere prima di allora senza conferma esplicita.
+2. **Fase 2**: da verificare dal vivo in un browser reale — richiede o il primo
+   deploy su VPS, o una decisione su come testare in locale nel frattempo.
 
 ## File del progetto
 

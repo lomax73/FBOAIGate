@@ -38,10 +38,21 @@ VPN_SUBNET_CIDR = os.environ.get('VPN_SUBNET_CIDR', '10.20.0.0/24')
 VPN_HUB_IP = os.environ.get('VPN_HUB_IP', '10.20.0.1')
 VPN_TARGET_IP_RANGE_START = os.environ.get('VPN_TARGET_IP_RANGE_START', '10.20.0.2')
 
+# Chiave privata SSH usata dal backend della console (app "console") per collegarsi
+# ai Target attraverso il tunnel WireGuard — identità di servizio dell'hub, distinta
+# dalle chiavi personali degli amministratori. In sviluppo punta alla chiave generata
+# per i test locali; in produzione (sul VPS) va generata una chiave dedicata propria
+# dell'hub e autorizzata su ogni Target in fase di onboarding (vedi fase_8).
+CONSOLE_SSH_PRIVATE_KEY_PATH = os.environ.get(
+    'CONSOLE_SSH_PRIVATE_KEY_PATH',
+    str(Path.home() / '.ssh' / 'fboaigate_console_service'),
+)
+
 
 # Application definition
 
 INSTALLED_APPS = [
+    'channels',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -82,6 +93,21 @@ TEMPLATES = [
 ]
 
 WSGI_APPLICATION = 'fboaigate.wsgi.application'
+ASGI_APPLICATION = 'fboaigate.asgi.application'
+
+# Channels: layer in-memory in sviluppo (nessun servizio esterno da avere in piedi
+# in locale), Redis in produzione via CHANNELS_REDIS_URL — stesso pattern del DB.
+if os.environ.get('CHANNELS_REDIS_URL'):
+    CHANNEL_LAYERS = {
+        'default': {
+            'BACKEND': 'channels_redis.core.RedisChannelLayer',
+            'CONFIG': {'hosts': [os.environ['CHANNELS_REDIS_URL']]},
+        },
+    }
+else:
+    CHANNEL_LAYERS = {
+        'default': {'BACKEND': 'channels.layers.InMemoryChannelLayer'},
+    }
 
 
 # Database
