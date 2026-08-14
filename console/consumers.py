@@ -11,6 +11,13 @@ from hub.models import Target
 
 from .models import SessioneTerminale
 
+# Sessione tmux condivisa per Target: se il WebSocket cade (rete, chiusura
+# scheda) il processo lanciato dentro (es. `claude` mentre elabora) continua a
+# girare sull'host, e la si ritrova riaprendo il terminale — non serve
+# ricordarsi comandi tmux a mano. `-A` crea la sessione se non esiste, altrimenti
+# vi si riaggancia.
+TMUX_SESSION_COMMAND = 'tmux new-session -A -s fboaigate'
+
 
 class TerminalConsumer(AsyncWebsocketConsumer):
     """Terminale SSH nel browser: apre una sessione SSH verso l'IP VPN del
@@ -48,7 +55,7 @@ class TerminalConsumer(AsyncWebsocketConsumer):
                 # dell'host key SSH sopra a quello.
                 known_hosts=None,
             )
-            self.ssh_process = await self.ssh_conn.create_process(term_type='xterm')
+            self.ssh_process = await self.ssh_conn.create_process(TMUX_SESSION_COMMAND, term_type='xterm')
         except Exception as exc:
             await self._chiudi_sessione(errore=str(exc))
             await self._send_output(f'\r\n[Errore di connessione SSH: {exc}]\r\n')

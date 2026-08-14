@@ -92,3 +92,9 @@ Per ogni nuovo `Target` (es. una futura VPS), la chiave pubblica della console
 (`/opt/fboaigate/.ssh/console_service.pub`) va aggiunta manualmente a
 `~/.ssh/authorized_keys` dell'utente `ssh_user` di quel Target — finché non
 esisterà il pulsante di onboarding automatico in UI (vedi fase_8).
+
+**`tmux` deve essere installato sul Target** (`apt install tmux`): il
+terminale della console si aggancia a una sessione tmux persistente
+(`console/consumers.py:TMUX_SESSION_COMMAND`), così un processo lanciato
+dentro (es. `claude` mentre elabora) sopravvive alla chiusura del
+WebSocket/scheda del browser.
