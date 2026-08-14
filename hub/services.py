@@ -1,3 +1,4 @@
+import stat as stat_module
 import socket
 
 import asyncssh
@@ -7,6 +8,17 @@ from django.utils import timezone
 SSH_PORT = 22
 CHECK_TIMEOUT_SECONDS = 1.5
 RESOURCE_USAGE_COMMAND = "cat /proc/loadavg && echo '---' && free -m && echo '---' && df -h /"
+
+
+def _connect(target):
+    """Apre una connessione SSH verso il Target con la chiave di servizio
+    della console. Va usata come `async with`."""
+    return asyncssh.connect(
+        target.vpn_ip,
+        username=target.ssh_user,
+        client_keys=[settings.CONSOLE_SSH_PRIVATE_KEY_PATH],
+        known_hosts=None,
+    )
 
 
 def refresh_target_status(target) -> bool:
@@ -39,12 +51,7 @@ async def fetch_resource_usage(target) -> dict:
     console) e legge carico/memoria/disco. Una connessione ad-hoc per
     chiamata: va bene per un pannello aggiornato ogni tot secondi su un
     numero di host contenuto, non pensata per il polling di molti host."""
-    async with asyncssh.connect(
-        target.vpn_ip,
-        username=target.ssh_user,
-        client_keys=[settings.CONSOLE_SSH_PRIVATE_KEY_PATH],
-        known_hosts=None,
-    ) as conn:
+    async with _connect(target) as conn:
         result = await conn.run(RESOURCE_USAGE_COMMAND, check=True)
     return _parse_resource_usage(result.stdout)
 
@@ -65,3 +72,49 @@ def _parse_resource_usage(output: str) -> dict:
         'memory': {'total_mb': int(mem_total), 'used_mb': int(mem_used), 'free_mb': int(mem_free)},
         'disk': {'size': disk_size, 'used': disk_used, 'avail': disk_avail, 'percent': disk_percent},
     }
+
+
+async def sftp_list_dir(target, path: str) -> dict:
+    """Elenca il contenuto di una cartella remota via SFTP. Path vuoto =
+    home dell'utente `ssh_user` sul Target."""
+    async with _connect(target) as conn:
+        async with conn.start_sftp_client() as sftp:
+            real_path = await sftp.realpath(path or '.')
+            entries = []
+            for entry in await sftp.readdir(real_path):
+                if entry.filename in ('.', '..'):
+                    continue
+                is_dir = stat_module.S_ISDIR(entry.attrs.permissions)
+                entries.append({
+                    'name': entry.filename,
+                    'is_dir': is_dir,
+                    'size': None if is_dir else entry.attrs.size,
+                })
+            entries.sort(key=lambda e: (not e['is_dir'], e['name'].lower()))
+            return {'path': real_path, 'entries': entries}
+
+
+async def sftp_mkdir(target, path: str) -> None:
+    async with _connect(target) as conn:
+        async with conn.start_sftp_client() as sftp:
+            await sftp.mkdir(path)
+
+
+async def sftp_delete(target, path: str) -> None:
+    """Elimina un file, o una cartella (ricorsivamente se non vuota)."""
+    async with _connect(target) as conn:
+        async with conn.start_sftp_client() as sftp:
+            attrs = await sftp.stat(path)
+            if stat_module.S_ISDIR(attrs.permissions):
+                await sftp.rmtree(path)
+            else:
+                await sftp.remove(path)
+
+
+async def sftp_upload(target, remote_dir: str, filename: str, django_file) -> None:
+    remote_path = remote_dir.rstrip('/') + '/' + filename
+    async with _connect(target) as conn:
+        async with conn.start_sftp_client() as sftp:
+            async with sftp.open(remote_path, 'wb') as remote_f:
+                for chunk in django_file.chunks():
+                    await remote_f.write(chunk)

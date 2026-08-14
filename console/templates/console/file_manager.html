@@ -1,0 +1,197 @@
+{% extends "base.html" %}
+{% block title %}File — {{ target.nome }}{% endblock %}
+{% block extra_head %}
+<style>
+    .fm-columns { display: flex; gap: 1rem; flex-wrap: wrap; }
+    .fm-panel { flex: 1 1 320px; background: #1e293b; border-radius: 8px; padding: 1rem; min-width: 280px; }
+    .fm-panel h2 { margin-top: 0; font-size: 1rem; }
+    .fm-toolbar { display: flex; gap: 0.5rem; margin-bottom: 0.75rem; flex-wrap: wrap; }
+    .fm-path { font-family: monospace; font-size: 0.85rem; color: #94a3b8; margin-bottom: 0.5rem; word-break: break-all; }
+    .fm-list { list-style: none; margin: 0; padding: 0; max-height: 50vh; overflow-y: auto; }
+    .fm-list li { display: flex; justify-content: space-between; align-items: center; padding: 0.4rem 0.25rem; border-bottom: 1px solid #334155; }
+    .fm-list li:hover { background: #263548; }
+    .fm-entry-name { cursor: pointer; }
+    .fm-entry-name.is-dir { font-weight: 600; }
+    .fm-size { color: #94a3b8; font-size: 0.8rem; margin-right: 0.5rem; }
+    .fm-del { background: none; border: none; color: #f87171; cursor: pointer; font-size: 0.9rem; }
+    .fm-msg { font-size: 0.85rem; margin-top: 0.5rem; }
+    .fm-local-list { list-style: none; margin: 0.5rem 0; padding: 0; font-size: 0.85rem; color: #cbd5e1; }
+</style>
+{% endblock %}
+{% block content %}
+<p><a href="{% url 'target-list' %}">&larr; Host</a></p>
+<h1>File — {{ target.nome }}</h1>
+
+<div class="fm-columns">
+    <div class="fm-panel">
+        <h2>💻 Questo computer</h2>
+        <div class="fm-toolbar">
+            <button class="btn" id="fm-local-browse">Sfoglia...</button>
+            <button class="btn" id="fm-upload-btn">Carica nella cartella remota corrente</button>
+        </div>
+        <input type="file" id="fm-local-input" multiple style="display:none;">
+        <ul class="fm-local-list" id="fm-local-list"></ul>
+        <div class="fm-msg" id="fm-upload-msg"></div>
+    </div>
+
+    <div class="fm-panel">
+        <h2>🖥️ {{ target.nome }}</h2>
+        <div class="fm-toolbar">
+            <button class="btn" id="fm-up">⬆️ Su</button>
+            <button class="btn" id="fm-new-folder">📁 Nuova cartella</button>
+            <button class="btn" id="fm-refresh">↻ Aggiorna</button>
+        </div>
+        <div class="fm-path" id="fm-remote-path">—</div>
+        <ul class="fm-list" id="fm-remote-list"></ul>
+        <div class="fm-msg" id="fm-remote-msg"></div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    var currentPath = '';
+    var localInput = document.getElementById('fm-local-input');
+    var localList = document.getElementById('fm-local-list');
+    var remoteList = document.getElementById('fm-remote-list');
+    var remotePathEl = document.getElementById('fm-remote-path');
+    var remoteMsg = document.getElementById('fm-remote-msg');
+    var uploadMsg = document.getElementById('fm-upload-msg');
+
+    function csrfToken() {
+        var match = document.cookie.match(/csrftoken=([^;]+)/);
+        return match ? match[1] : '';
+    }
+
+    function humanSize(bytes) {
+        if (bytes === null || bytes === undefined) return '';
+        var units = ['B', 'KB', 'MB', 'GB', 'TB'];
+        var i = 0;
+        var n = bytes;
+        while (n >= 1024 && i < units.length - 1) { n /= 1024; i++; }
+        return n.toFixed(i === 0 ? 0 : 1) + ' ' + units[i];
+    }
+
+    function loadRemote(path) {
+        remoteMsg.textContent = '';
+        fetch('{% url "target-files-list" target.pk %}?path=' + encodeURIComponent(path || ''))
+            .then(function (r) { return r.json(); })
+            .then(function (data) {
+                if (data.error) {
+                    remoteMsg.textContent = 'Errore: ' + data.error;
+                    return;
+                }
+                currentPath = data.path;
+                remotePathEl.textContent = currentPath;
+                remoteList.innerHTML = '';
+                data.entries.forEach(function (entry) {
+                    var li = document.createElement('li');
+
+                    var nameSpan = document.createElement('span');
+                    nameSpan.className = 'fm-entry-name' + (entry.is_dir ? ' is-dir' : '');
+                    nameSpan.textContent = (entry.is_dir ? '📁 ' : '📄 ') + entry.name;
+                    if (entry.is_dir) {
+                        nameSpan.addEventListener('click', function () {
+                            loadRemote(currentPath.replace(/\/$/, '') + '/' + entry.name);
+                        });
+                    }
+
+                    var right = document.createElement('span');
+                    var sizeSpan = document.createElement('span');
+                    sizeSpan.className = 'fm-size';
+                    sizeSpan.textContent = entry.is_dir ? '' : humanSize(entry.size);
+                    var delBtn = document.createElement('button');
+                    delBtn.className = 'fm-del';
+                    delBtn.textContent = '🗑️';
+                    delBtn.title = 'Elimina';
+                    delBtn.addEventListener('click', function () {
+                        var what = entry.is_dir ? 'la cartella (e tutto il contenuto)' : 'il file';
+                        if (!confirm('Eliminare ' + what + ' "' + entry.name + '"? Operazione irreversibile.')) return;
+                        var body = new URLSearchParams();
+                        body.set('path', currentPath.replace(/\/$/, '') + '/' + entry.name);
+                        fetch('{% url "target-files-delete" target.pk %}', {
+                            method: 'POST',
+                            headers: { 'X-CSRFToken': csrfToken(), 'Content-Type': 'application/x-www-form-urlencoded' },
+                            body: body,
+                        })
+                            .then(function (r) { return r.json(); })
+                            .then(function (data) {
+                                if (data.error) { remoteMsg.textContent = 'Errore: ' + data.error; return; }
+                                loadRemote(currentPath);
+                            });
+                    });
+
+                    right.appendChild(sizeSpan);
+                    right.appendChild(delBtn);
+                    li.appendChild(nameSpan);
+                    li.appendChild(right);
+                    remoteList.appendChild(li);
+                });
+            })
+            .catch(function () { remoteMsg.textContent = 'Errore di connessione.'; });
+    }
+
+    document.getElementById('fm-up').addEventListener('click', function () {
+        var parent = currentPath.replace(/\/+$/, '').split('/').slice(0, -1).join('/');
+        loadRemote(parent || '/');
+    });
+    document.getElementById('fm-refresh').addEventListener('click', function () { loadRemote(currentPath); });
+
+    document.getElementById('fm-new-folder').addEventListener('click', function () {
+        var name = prompt('Nome della nuova cartella:');
+        if (!name) return;
+        var body = new URLSearchParams();
+        body.set('path', currentPath);
+        body.set('name', name);
+        fetch('{% url "target-files-mkdir" target.pk %}', {
+            method: 'POST',
+            headers: { 'X-CSRFToken': csrfToken(), 'Content-Type': 'application/x-www-form-urlencoded' },
+            body: body,
+        })
+            .then(function (r) { return r.json(); })
+            .then(function (data) {
+                if (data.error) { remoteMsg.textContent = 'Errore: ' + data.error; return; }
+                loadRemote(currentPath);
+            });
+    });
+
+    document.getElementById('fm-local-browse').addEventListener('click', function () {
+        localInput.click();
+    });
+    localInput.addEventListener('change', function () {
+        localList.innerHTML = '';
+        Array.from(localInput.files).forEach(function (f) {
+            var li = document.createElement('li');
+            li.textContent = f.name + ' (' + humanSize(f.size) + ')';
+            localList.appendChild(li);
+        });
+    });
+
+    document.getElementById('fm-upload-btn').addEventListener('click', function () {
+        var files = localInput.files;
+        if (!files.length) { uploadMsg.textContent = 'Seleziona prima uno o più file.'; return; }
+        uploadMsg.textContent = 'Caricamento in corso...';
+        var uploads = Array.from(files).map(function (f) {
+            var body = new FormData();
+            body.set('path', currentPath);
+            body.set('file', f);
+            return fetch('{% url "target-files-upload" target.pk %}', {
+                method: 'POST',
+                headers: { 'X-CSRFToken': csrfToken() },
+                body: body,
+            }).then(function (r) { return r.json(); });
+        });
+        Promise.all(uploads).then(function (results) {
+            var errors = results.filter(function (r) { return r.error; });
+            uploadMsg.textContent = errors.length
+                ? 'Caricati con errori: ' + errors.map(function (e) { return e.error; }).join('; ')
+                : 'Caricamento completato.';
+            localInput.value = '';
+            localList.innerHTML = '';
+            loadRemote(currentPath);
+        });
+    });
+
+    loadRemote('');
+});
+</script>
+{% endblock %}
