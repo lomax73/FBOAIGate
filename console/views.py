@@ -40,7 +40,8 @@ class TargetResourcesView(View):
     con un handler asincrono) — il controllo di autenticazione è fatto a mano."""
 
     async def get(self, request, pk):
-        if not request.user.is_authenticated:
+        user = await request.auser()
+        if not user.is_authenticated:
             return JsonResponse({'error': 'non autenticato'}, status=401)
 
         target = await Target.objects.filter(pk=pk).afirst()
