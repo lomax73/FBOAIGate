@@ -102,6 +102,23 @@ document.addEventListener('DOMContentLoaded', function () {
             return true;
         });
 
+        // Programmi come Claude Code copiano usando la sequenza di terminale
+        // OSC 52 (scrive negli appunti tramite l'emulatore, non tramite
+        // selezione+Ctrl+C del browser) — xterm.js non la gestisce di
+        // default, quindi senza questo handler "sembra" funzionare (l'app la
+        // manda) ma non arriva davvero al clipboard del sistema.
+        term.parser.registerOscHandler(52, function (data) {
+            var parts = data.split(';');
+            if (parts.length < 2 || parts[1] === '?') return true;
+            try {
+                var binary = atob(parts[1]);
+                var bytes = Uint8Array.from(binary, function (c) { return c.charCodeAt(0); });
+                var text = new TextDecoder('utf-8').decode(bytes);
+                navigator.clipboard.writeText(text);
+            } catch (e) {}
+            return true;
+        });
+
         // Dopo aver selezionato del testo col mouse (Shift+trascina, per
         // bypassare la mouse-tracking di app come Claude Code) il campo di
         // input nascosto di xterm.js perde il focus: senza rimetterlo,
