@@ -16,6 +16,14 @@ ssh mkremote-vps
 sudo certbot --nginx -d aigate.fbosolution.it
 ```
 
+**Accesso provvisorio via IP mentre il DNS non è pronto**:
+`https://94.177.161.127:8451/` (cert self-signed, il browser avvisa — è normale).
+Vhost dedicato `deploy/nginx-fboaigate-ip-provisional.conf`, stesso pattern usato
+inizialmente da FBOPortal. Porta `8451` scelta perché `8443`-`8450` sono già
+occupate da altre app/usi interni sullo stesso VPS (controllare sempre con
+`ss -tlnp | grep 84` prima di aggiungerne una nuova). Da rimuovere (vhost +
+regola UFW) appena il DNS vero è confermato funzionante.
+
 ## Provisioning iniziale (una tantum, già fatto il 2026-08-14)
 
 ```
