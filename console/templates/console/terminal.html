@@ -87,6 +87,21 @@ document.addEventListener('DOMContentLoaded', function () {
         term.open(document.getElementById('terminal'));
         fitAddon.fit();
 
+        // Copia/incolla: di default xterm.js intercetta sempre Ctrl/Cmd+C
+        // (lo manda come segnale d'interruzione al processo remoto, mai come
+        // copia) e non lascia sempre passare Ctrl/Cmd+V al browser. Se c'è una
+        // selezione attiva, Ctrl/Cmd+C copia negli appunti invece di
+        // interrompere; Ctrl/Cmd+V lascia sempre fare il paste nativo del
+        // browser (che xterm.js intercetta comunque a parte, via l'evento
+        // "paste" sulla sua textarea interna).
+        term.attachCustomKeyEventHandler(function (event) {
+            if (event.type !== 'keydown') return true;
+            var mod = event.ctrlKey || event.metaKey;
+            if (mod && event.key === 'c' && term.hasSelection()) return false;
+            if (mod && event.key === 'v') return false;
+            return true;
+        });
+
         var statusEl = document.getElementById('terminal-status');
         var protocol = location.protocol === 'https:' ? 'wss://' : 'ws://';
         var socket = new WebSocket(protocol + location.host + '/ws/terminal/{{ target.pk }}/');
