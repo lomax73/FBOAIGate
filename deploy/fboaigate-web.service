@@ -1,0 +1,15 @@
+[Unit]
+Description=FBOAIGate Daphne (ASGI)
+After=network.target postgresql.service
+
+[Service]
+User=fboaigate
+Group=fboaigate
+WorkingDirectory=/opt/fboaigate/app
+ExecStart=/opt/fboaigate/app/venv/bin/daphne -u /run/fboaigate/daphne.sock fboaigate.asgi:application
+RuntimeDirectory=fboaigate
+Restart=on-failure
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target

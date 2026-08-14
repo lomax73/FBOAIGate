@@ -5,6 +5,20 @@ seguire l'ordine numerico: si aggiorna in continuazione.
 
 ## Aperti
 
+- **Chiave SSH di sviluppo ancora autorizzata sul NUC** (2026-08-14): durante lo
+  sviluppo locale della Fase 2 è stata generata una chiave di servizio sul Mac
+  (`~/.ssh/fboaigate_console_service`) e autorizzata sul NUC per i test. Dopo il
+  deploy in produzione, il VPS ha la sua chiave dedicata
+  (`/opt/fboaigate/.ssh/console_service`, generata lì). La chiave del Mac resta
+  autorizzata sul NUC per comodità di test futuri, ma andrebbe rimossa
+  (`~/.ssh/authorized_keys` sul NUC) quando non serve più, per igiene.
+- **DNS `aigate.fbosolution.it` non ancora propagato** (verificato 2026-08-14
+  anche sull'authoritative nameserver Aruba: nessun record A). L'utente ha
+  detto di averlo già creato lato pannello Aruba. Deploy fatto comunque con
+  certificato self-signed provvisorio (stesso pattern usato inizialmente da
+  FBOPortal) — appena il DNS risolve, sostituire con Let's Encrypt
+  (`certbot --nginx -d aigate.fbosolution.it` sul VPS).
+
 - **Stato online/offline del Target non è "live"** (Fase 2, 2026-08-14): il campo
   `Target.online` è statico (impostato a mano in fase di registrazione), non
   aggiornato da un controllo periodico reale. Il criterio di completamento della

@@ -108,14 +108,42 @@ personali degli amministratori.
 - Aperto: `Target.online` non è aggiornato da un controllo reale (probabile
   territorio Fase 5) — vedi fase_8.
 
+## Deploy in produzione (2026-08-14)
+
+`https://aigate.fbosolution.it/` — VPS `94.177.161.127` (stesso di MKRemote,
+hub `wg1` separato), utente di sistema `fboaigate`, Postgres, Daphne dietro
+Nginx (systemd `fboaigate-web.service`). Procedura completa in
+`deploy/README.md`.
+
+- **Certificato self-signed provvisorio**: il DNS di `aigate.fbosolution.it`
+  non era ancora propagato al momento del deploy (verificato anche
+  sull'authoritative nameserver Aruba: nessun record). L'utente ha detto di
+  averlo già creato lato Aruba — da ricontrollare/attivare Let's Encrypt
+  (`certbot --nginx -d aigate.fbosolution.it`) appena risolve.
+- **Verificato end-to-end in produzione**: login, elenco host, apertura
+  terminale via WebSocket → Nginx → Daphne → `asyncssh` → NUC attraverso
+  `wg1`/`wg0`, autenticazione con la chiave di servizio riuscita, shell
+  interattiva aperta, sessione chiusa e loggata correttamente in
+  `SessioneTerminale` alla disconnessione. **Fase 2 sostanzialmente
+  completa**, salvo il gap sullo stato online/offline "live" (vedi sopra).
+- Superuser di produzione: `admin` (email f.lomazzi@fbosolution.it),
+  password generata e comunicata all'utente in chat — da cambiare al primo
+  accesso.
+- Chiave SSH di servizio della console generata **sul VPS stesso**
+  (`/opt/fboaigate/.ssh/console_service`), autorizzata sul NUC. Nota:
+  resta autorizzata sul NUC anche la chiave di sviluppo generata sul Mac
+  (usata per i test locali prima del deploy) — pulizia rimandata, vedi fase_8.
+
 ## Prossimo passo
 
 Due filoni aperti in parallelo:
 1. **Fase 1**: lasciare il tunnel in osservazione un paio di giorni, poi tornare
    sul punto 5 di `fase_1_tunnel_sicuro_esecuzione.md` (firewall + lockdown SSH).
    Non procedere prima di allora senza conferma esplicita.
-2. **Fase 2**: da verificare dal vivo in un browser reale — richiede o il primo
-   deploy su VPS, o una decisione su come testare in locale nel frattempo.
+2. **Fase 2**: verificata end-to-end in produzione. Resta da decidere se
+   chiuderla come `_terminato` accettando il gap sullo stato "live" (rimandato
+   a Fase 5) o se affrontarlo prima — da chiedere all'utente. Resta anche da
+   sistemare il certificato TLS vero (Let's Encrypt) appena il DNS è pronto.
 
 ## File del progetto
 
