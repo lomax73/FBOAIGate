@@ -87,3 +87,33 @@ terminale della console si aggancia a una sessione tmux persistente
 (`console/consumers.py:TMUX_SESSION_COMMAND`), così un processo lanciato
 dentro (es. `claude` mentre elabora) sopravvive alla chiusura del
 WebSocket/scheda del browser.
+
+## Gestione utenti centralizzata da FBOPortal (Fase 3)
+
+Stesso pattern di MKRemote: login separato su FBOAIGate, ma account creabili/
+modificabili/eliminabili da FBOPortal. Setup (fatto il 2026-08-14):
+
+```
+# Genera il token
+python3 -c "import secrets; print(secrets.token_urlsafe(32))"
+
+# Sul VPS: aggiungi INTERNAL_API_TOKEN=<token> a /opt/fboaigate/app/.env,
+# poi riavvia
+systemctl restart fboaigate-web.service
+```
+
+Vhost Nginx dedicato, interno (`127.0.0.1:8452`), stesso certificato TLS del
+vhost pubblico:
+
+```
+cp deploy/nginx-fboaigate-internal.conf /etc/nginx/sites-available/fboaigate-internal
+ln -s /etc/nginx/sites-available/fboaigate-internal /etc/nginx/sites-enabled/fboaigate-internal
+```
+
+Il vhost pubblico (`deploy/nginx-fboaigate.conf`) ha anche un blocco
+`location /api/internal/ { allow 127.0.0.1; deny all; ... }` **prima** di
+`location /`, per bloccare l'endpoint anche se qualcuno lo chiama tramite il
+dominio pubblico invece che tramite la porta interna.
+
+Infine, su FBOPortal (admin → catalogo → FBOAIGate): `internal_base_url =
+https://127.0.0.1:8452`, `api_token = <stesso token>`.

@@ -155,6 +155,25 @@ Nginx (systemd `fboaigate-web.service`). Procedura completa in
   il NUC dalla LAN di casa (restava sulla stessa rete, solo non più
   raggiungibile da questo Mac). Uso `ssh fboaigate-nuc-tunnel` (ProxyJump via
   VPS), verificato funzionante prima dell'isolamento.
+- **File manager via SFTP** nella console: sfoglia/naviga cartelle remote,
+  carica file dal proprio PC, crea/elimina cartelle (eliminazione ricorsiva
+  per le cartelle, con conferma). Verificato end-to-end contro il NUC.
+- **"Chiudi sessione" nel terminale** ora ripristina davvero l'interfaccia
+  (prima chiudeva solo il WebSocket lasciando il riquadro a schermo) — bug
+  fix.
+
+## Fase 3 — Integrazione con FBOPortal: **terminata (2026-08-14)**
+
+Obiettivo ridefinito con l'utente: non SSO (scartato esplicitamente), ma
+**login separato + gestione utenti centralizzata da FBOPortal**, stesso
+pattern già in uso per MKRemote. App `accounts/` espone
+`api/internal/users/`, token statico, endpoint raggiungibile solo da
+`127.0.0.1` (vhost Nginx dedicato su `127.0.0.1:8452`, più un blocco di
+sicurezza identico anche sul vhost pubblico). `AppLink` di FBOAIGate su
+FBOPortal configurato. Verificato end-to-end: FBOPortal elenca, crea ed
+elimina utenti su FBOAIGate usando lo stesso client già usato per le altre
+app (`useradmin/services.py`), nessuna modifica al codice di FBOPortal.
+Dettagli in `fase_3_integrazione_portal_terminato.md` e `deploy/README.md`.
 
 ## Prossimo passo
 
@@ -164,6 +183,8 @@ Nginx (systemd `fboaigate-web.service`). Procedura completa in
 2. **Fase 2**: nella pratica ampiamente superata dai criteri minimi (vedi
    sopra) — da chiudere formalmente come `_terminato` quando l'utente
    conferma di non avere altro da aggiungere.
+3. **Fase 4** (bot Telegram) e **Fase 5** (hardening/monitoring): non ancora
+   iniziate.
 
 ## File del progetto
 
