@@ -48,6 +48,12 @@ CONSOLE_SSH_PRIVATE_KEY_PATH = os.environ.get(
     str(Path.home() / '.ssh' / 'fboaigate_console_service'),
 )
 
+# Token per la API interna di gestione utenti (accounts/), usata dal Portale
+# per creare/modificare/eliminare account da remoto. L'endpoint è raggiungibile
+# solo da localhost (regola Nginx), il token è una difesa aggiuntiva — stesso
+# pattern di MKRemote. Generarlo con: python -c "import secrets; print(secrets.token_urlsafe(32))"
+INTERNAL_API_TOKEN = os.environ.get('INTERNAL_API_TOKEN', '')
+
 
 # Application definition
 
