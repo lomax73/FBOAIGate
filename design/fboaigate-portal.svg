@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" role="img" aria-label="FBOAIGate">
+  <rect x="8" y="8" width="84" height="84" rx="22" fill="#123247"/>
+  <path d="M50 21 L74 29.5 V51.5 C74 67.5 63.5 77 50 81 C36.5 77 26 67.5 26 51.5 V29.5 Z"
+        fill="none" stroke="#ffffff" stroke-width="4" stroke-linejoin="round"/>
+  <path d="M50 28 C45 26 39 28 37 32 C33 34 32.5 39.5 36 42.5 C35.5 46.5 39 49.5 43.5 48.5 C45.5 50.5 48.5 50 50 48 Z"
+        fill="#27a5de"/>
+  <g stroke="#27a5de" stroke-width="2.6" stroke-linecap="round">
+    <line x1="53" y1="33" x2="63" y2="33"/>
+    <line x1="53" y1="39" x2="65" y2="39"/>
+    <line x1="53" y1="45" x2="62" y2="45"/>
+  </g>
+  <path d="M41 58 L50 65.5 L41 73" fill="none" stroke="#ffffff" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>
+  <line x1="53" y1="73" x2="62" y2="73" stroke="#ffffff" stroke-width="5" stroke-linecap="round"/>
+</svg>

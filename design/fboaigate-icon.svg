@@ -1,0 +1,46 @@
+<svg viewBox="0 0 200 200" width="200" height="200" xmlns="http://www.w3.org/2000/svg">
+  <title>FBOAIGate</title>
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#16303d"/>
+      <stop offset="1" stop-color="#0f2029"/>
+    </linearGradient>
+  </defs>
+
+  <!-- fondo -->
+  <rect width="200" height="200" rx="44" fill="url(#bg)"/>
+
+  <!-- scudo: canale protetto -->
+  <path d="M 100 42 L 148 59 L 148 103 C 148 135 127 154 100 162 C 73 154 52 135 52 103 L 52 59 Z"
+        fill="none" stroke="#1f8fc4" stroke-width="7" stroke-linejoin="round"/>
+
+  <!-- cervello: emisfero sinistro organico -->
+  <g stroke="#1f8fc4" fill="none" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M 100 56 C 90 52 78 56 74 64 C 66 68 65 79 72 85 C 71 93 78 99 87 97 C 91 101 97 100 100 96 Z" stroke-width="5"/>
+    <path d="M 88 62 C 92 66 90 72 85 73 C 80 75 81 82 86 83" stroke-width="2.4" opacity=".85"/>
+
+    <!-- emisfero destro: circuito -->
+    <path d="M 100 56 C 110 52 122 56 126 64 C 134 68 135 79 128 85 C 129 93 122 99 113 97 C 109 101 103 100 100 96 Z" stroke-width="5"/>
+    <line x1="100" y1="56" x2="100" y2="96" stroke-width="2.2" opacity=".7"/>
+    <g stroke-width="2.2" opacity=".95">
+      <line x1="108" y1="68" x2="122" y2="68"/>
+      <line x1="108" y1="78" x2="128" y2="78"/>
+      <line x1="108" y1="88" x2="120" y2="88"/>
+      <line x1="112" y1="62" x2="112" y2="94"/>
+    </g>
+
+    <!-- tronco encefalico -->
+    <path d="M 100 96 L 100 105" stroke-width="4.5"/>
+  </g>
+
+  <!-- nodi del circuito -->
+  <g fill="#e0a340">
+    <circle cx="122" cy="68" r="2.6"/>
+    <circle cx="128" cy="78" r="2.6"/>
+    <circle cx="120" cy="88" r="2.6"/>
+  </g>
+
+  <!-- prompt di terminale -->
+  <path d="M 83 116 L 100 130 L 83 144" fill="none" stroke="#eaf4f8" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"/>
+  <line x1="106" y1="144" x2="122" y2="144" stroke="#eaf4f8" stroke-width="7" stroke-linecap="round"/>
+</svg>
