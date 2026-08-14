@@ -5,6 +5,30 @@ seguire l'ordine numerico: si aggiorna in continuazione.
 
 ## Aperti
 
+- **Fase 1, punto 5 (firewall + SSH solo su wg0) — sospeso, da discutere prima di
+  attivarlo** (2026-08-14): tunnel WireGuard NUC↔hub verificato e funzionante (vedi
+  sotto), ma il blocco dell'accesso pubblico SSH non è ancora stato applicato su
+  richiesta esplicita dell'utente ("il punto 5 ne discutiamo prima di attivarlo").
+  Rischio noto: una volta applicato, se il tunnel dovesse cadere il NUC diventerebbe
+  irraggiungibile da remoto (richiederebbe accesso fisico). Non procedere senza
+  conferma esplicita.
+- **Hub VPN condiviso fisicamente col VPS di MKRemote, isolato logicamente**
+  (2026-08-14, confermato con l'utente): interfaccia `wg1` separata da `wg0`
+  (MKRemote), porta `51821` invece di `51820`, subnet `10.20.0.0/24`. Nessuna
+  modifica alla configurazione esistente di MKRemote.
+
+- **Pulsante "genera script di onboarding nuovo host" nell'interfaccia** (richiesto
+  dall'utente 2026-08-14, Fase 1): quando si aggiunge un nuovo `Target`, l'interfaccia
+  dovrà offrire un pulsante che genera lo script da eseguire sull'host per collegarlo
+  al tunnel WireGuard — stesso pattern già usato in MKRemote
+  (`vpn/scripts.py:generate_wireguard_setup_script` / `generate_firewall_lockdown_script`,
+  ma lì per RouterOS/.rsc). Per FBOAIGate gli host sono Linux (Debian/VPS): lo script
+  sarà bash + `wg`/`wg-quick`, stessa logica (chiave privata generata sull'host, mai
+  trasmessa; firewall lockdown come script separato da eseguire solo dopo verifica
+  tunnel). Da implementare nell'app `hub` quando si arriva alla UI (Fase 2/3) — il
+  tunnel del NUC (primo Target) in Fase 1 viene fatto a mano via SSH per validare il
+  meccanismo prima di scriverne l'automazione.
+
 ## Chiusi (continua)
 
 - **Fase 0 completata** (2026-08-14): scaffolding Django (`fboaigate`, app

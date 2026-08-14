@@ -71,11 +71,29 @@ bot Telegram per inviare comandi.
 
 Dettagli completi in `fase_0_fondamenta_terminato.md` e `fase_8_modifiche_rifinitura.md`.
 
-## Prossimo passo: Fase 1 — tunnel sicuro
+## Fase 1 — in corso (2026-08-14): tunnel creato, lockdown SSH sospeso
 
-Da leggere per intero e riassumere all'utente prima di iniziare (protocollo in
-`fase_-1_workflow.md`): `fase_1_tunnel_sicuro.md`. Riguarda l'hub WireGuard vero e
-proprio (il NUC ha già un IP statico su cui appoggiarsi).
+- **Hub WireGuard**: `wg1` sul VPS di MKRemote (`94.177.161.127`), isolato da `wg0`
+  di MKRemote — porta `51821` (vs `51820`), subnet `10.20.0.0/24`, hub IP `10.20.0.1`.
+  Deciso di condividere il VPS fisico ma non la configurazione (vedi fase_8).
+- **NUC**: `wireguard`/`wireguard-tools` installati, chiave generata sul NUC stesso,
+  `wg0` configurato verso l'hub (IP tunnel `10.20.0.2`), `PersistentKeepalive=25`,
+  servizio `wg-quick@wg0` abilitato al boot.
+- **Verificato**: handshake attivo, ping bidirezionale hub↔NUC, SSH raggiungibile
+  attraverso il tunnel (testato dal VPS, che è dentro la VPN).
+- **Registrato** come primo `Target` nel database Django (`NUC casa`, `10.20.0.2`).
+- **Non ancora fatto, di proposito**: punto 5 della fase (firewall + SSH solo su
+  `wg0`, chiusura dell'accesso pubblico) — l'utente ha chiesto di discuterne prima
+  di attivarlo, per il rischio di restare tagliati fuori se il tunnel cade. **Non
+  procedere senza conferma esplicita.**
+- **Da tenere a mente per dopo**: l'utente ha chiesto un pulsante nell'interfaccia
+  che generi lo script di onboarding per nuovi host (stesso pattern di MKRemote,
+  vedi fase_8) — da fare quando si arriva alla UI (Fase 2/3), non ora.
+
+## Prossimo passo
+
+Riprendere la discussione sul punto 5 di `fase_1_tunnel_sicuro_esecuzione.md`
+(firewall + lockdown SSH) con l'utente prima di procedere.
 
 ## File del progetto
 
