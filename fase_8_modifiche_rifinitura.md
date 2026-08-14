@@ -5,6 +5,17 @@ seguire l'ordine numerico: si aggiorna in continuazione.
 
 ## Aperti
 
+- **Tab multiple nel terminale: da rivedere** (2026-08-14). Corretto il bug
+  per cui tutte le tab mostravano la stessa finestra tmux (sessioni
+  raggruppate invece di client multipli sulla stessa sessione — vedi commit
+  "Fix: le tab del terminale si influenzavano a vicenda"), verificato a mano
+  via SSH che ora sono indipendenti. L'utente però segnala "secondo me va
+  rivisto qualcosa" dopo il primo giro di test in produzione, senza
+  specificare cosa — verificare di persona nel browser (non solo da SSH) alla
+  prossima occasione: barra delle tab, numerazione, comportamento alla
+  riapertura della pagina (oggi non recupera le tab già aperte su tmux, es.
+  `claude`/`tab2`/`tab3`/`tab4` esistenti — bisogna riaprirle a mano una per
+  una cliccando "+", non compaiono da sole nella barra).
 - **Chiave SSH di sviluppo ancora autorizzata sul NUC** (2026-08-14): durante lo
   sviluppo locale della Fase 2 è stata generata una chiave di servizio sul Mac
   (`~/.ssh/fboaigate_console_service`) e autorizzata sul NUC per i test. Dopo il
