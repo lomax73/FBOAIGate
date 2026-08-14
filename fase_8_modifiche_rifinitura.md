@@ -5,12 +5,18 @@ seguire l'ordine numerico: si aggiorna in continuazione.
 
 ## Aperti
 
-- **Operazioni Fase 0 sospese sul NUC**: scaffolding Django completato in locale
-  (2026-08-14): progetto `fboaigate`, app `hub`/`console`/`bot`/`accounts`, modello
-  `Target` con migrazioni, venv, `requirements.txt`, `.env.example`, repo git
-  inizializzato. Restano da fare direttamente sul NUC (utente SSH dedicato già
-  presente): installare `unattended-upgrades` e installare/autenticare Claude Code.
-  Fase segnata `_esecuzione_da_finire` finché non si completano.
+## Chiusi (continua)
+
+- **Fase 0 completata** (2026-08-14): scaffolding Django (`fboaigate`, app
+  `hub`/`console`/`bot`/`accounts`, modello `Target` con migrazioni, venv,
+  `requirements.txt`, `.env.example`, repo git inizializzato). Sul NUC:
+  `unattended-upgrades` installato/attivo, Claude Code installato e autenticato
+  (verificato con `claude -p`). IP del NUC reso statico (`10.0.0.169/24`, gateway
+  `10.0.0.1`, DNS `192.168.1.1` fissato e reso immutabile con `chattr +i` dopo un
+  incidente in cui un demone `dhcpcd` residuo sovrascriveva la configurazione —
+  risolto, backup dei file originali in `/etc/network/*.bak.20260814` sul NUC).
+  Alias SSH locale `fboaigate-nuc` configurato (chiave dedicata
+  `~/.ssh/fboaigate_nuc`, separata da quella di MKRemote).
 
 - **Incorporamento futuro di MKRemote** (deciso in linea di massima, meccanismo aperto):
   FBOAIGate diventerà l'interfaccia unica che aggrega sezioni oggi separate — "router"

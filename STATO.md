@@ -1,6 +1,6 @@
 # Stato del progetto — punto di partenza per la prossima sessione
 
-Ultimo aggiornamento: 2026-08-13 sera. Leggi questo file per primo quando riprendi,
+Ultimo aggiornamento: 2026-08-14. Leggi questo file per primo quando riprendi,
 poi `fase_-1_workflow.md` per il protocollo di esecuzione delle fasi.
 
 ## Cos'è FBOAIGate
@@ -51,13 +51,31 @@ bot Telegram per inviare comandi.
   file per file: era identica a quanto già presente su GitHub. Messa al sicuro con
   `git stash` prima di toccare qualsiasi cosa, poi sincronizzata senza perdite.
 
-## Prossimo passo: Fase 0
+## Fase 0 — completata (2026-08-14)
 
-Prima di scrivere codice devo, per protocollo (`fase_-1_workflow.md`): riassumere cosa
-farò, aspettare conferma esplicita.
+- Scaffolding Django `fboaigate` creato: app `hub` (modello `Target` con migrazioni),
+  `console`, `bot`, `accounts`. Venv proprio, `requirements.txt`, `.env.example`,
+  `.gitignore`, repo git inizializzato con un primo commit locale (nessun push,
+  nessun remote configurato ancora).
+- Settings env-driven come MKRemote: SQLite in sviluppo di default, Postgres in
+  produzione via `DB_ENGINE=postgresql`. Subnet VPN pianificata: `10.20.0.0/24`.
+- **NUC**: `unattended-upgrades` installato e attivo; Claude Code installato
+  (installer nativo) e **autenticato** (verificato con `claude -p`).
+- **IP del NUC reso statico**: `10.0.0.169/24`, gateway `10.0.0.1`, DNS `192.168.1.1`
+  (fissato in `/etc/resolv.conf` e reso immutabile con `chattr +i` per evitare che
+  venga sovrascritto al boot — vedi incidente e soluzione in
+  `fase_8_modifiche_rifinitura.md`).
+- **Accesso SSH da questo Mac**: alias `ssh fboaigate-nuc` configurato in
+  `~/.ssh/config`, chiave dedicata `~/.ssh/fboaigate_nuc` (separata da quella usata
+  per MKRemote/VPS, per coerenza con l'isolamento tra progetti).
 
-**Domanda a cui rispondere per iniziare**: il NUC è già acceso con Debian installato e
-raggiungibile in locale (sulla LAN di casa), o va ancora fatto anche quello?
+Dettagli completi in `fase_0_fondamenta_terminato.md` e `fase_8_modifiche_rifinitura.md`.
+
+## Prossimo passo: Fase 1 — tunnel sicuro
+
+Da leggere per intero e riassumere all'utente prima di iniziare (protocollo in
+`fase_-1_workflow.md`): `fase_1_tunnel_sicuro.md`. Riguarda l'hub WireGuard vero e
+proprio (il NUC ha già un IP statico su cui appoggiarsi).
 
 ## File del progetto
 
