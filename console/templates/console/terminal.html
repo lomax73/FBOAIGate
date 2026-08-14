@@ -19,10 +19,25 @@
 </div>
 
 <div id="terminal-container" style="display:none; margin-top:1rem;">
-    <div id="terminal" style="background:#000; padding:0.5rem; border-radius:8px;"></div>
+    <div id="terminal" style="background:#000; padding:0.5rem; border-radius:8px; height:70vh;"></div>
     <p id="terminal-status" style="color:#64748b; font-size:0.85rem;"></p>
+    <button class="btn" id="fullscreen-terminal-btn">Schermo intero</button>
     <button class="btn btn-danger" id="close-terminal-btn">Chiudi sessione</button>
 </div>
+
+<style>
+#terminal-container.maximized {
+    position: fixed;
+    inset: 0;
+    z-index: 1000;
+    background: #0f172a;
+    margin: 0;
+    padding: 0.75rem;
+    display: flex;
+    flex-direction: column;
+}
+#terminal-container.maximized #terminal { flex: 1 1 auto; height: auto; }
+</style>
 
 <script>
 document.addEventListener('DOMContentLoaded', function () {
@@ -31,7 +46,8 @@ document.addEventListener('DOMContentLoaded', function () {
 
     openBtn.addEventListener('click', function () {
         document.getElementById('warning-box').style.display = 'none';
-        document.getElementById('terminal-container').style.display = 'block';
+        var containerEl = document.getElementById('terminal-container');
+        containerEl.style.display = 'block';
 
         var term = new Terminal({ cursorBlink: true, fontSize: 14 });
         var fitAddon = new FitAddon.FitAddon();
@@ -67,11 +83,23 @@ document.addEventListener('DOMContentLoaded', function () {
             }
         });
 
-        window.addEventListener('resize', function () {
+        function refit() {
             fitAddon.fit();
             if (socket.readyState === WebSocket.OPEN) {
                 socket.send(JSON.stringify({ type: 'resize', cols: term.cols, rows: term.rows }));
             }
+        }
+
+        window.addEventListener('resize', refit);
+
+        var fullscreenBtn = document.getElementById('fullscreen-terminal-btn');
+        fullscreenBtn.addEventListener('click', function () {
+            var maximized = containerEl.classList.toggle('maximized');
+            fullscreenBtn.textContent = maximized ? 'Esci da schermo intero' : 'Schermo intero';
+            // Il ridimensionamento del div avviene per CSS: aspetta il repaint
+            // prima di ricalcolare righe/colonne, altrimenti fit() usa le
+            // dimensioni vecchie.
+            requestAnimationFrame(refit);
         });
 
         document.getElementById('close-terminal-btn').addEventListener('click', function () {
