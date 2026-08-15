@@ -2,10 +2,48 @@ import json
 
 from django.conf import settings
 from django.contrib.auth.models import User
+from django.contrib.auth.views import LoginView
+from django.core.cache import cache
 from django.http import JsonResponse
 from django.utils.decorators import method_decorator
 from django.views import View
 from django.views.decorators.csrf import csrf_exempt
+
+LOGIN_RATE_LIMIT_WINDOW_SECONDS = 3600
+LOGIN_RATE_LIMIT_MAX_ATTEMPTS = 10
+
+
+def _client_ip(request):
+    # X-Real-IP è impostato solo da nginx (deploy/nginx-fboaigate.conf, sempre
+    # sovrascritto con $remote_addr), quindi il client non può manometterlo -
+    # a differenza di X-Forwarded-For.
+    return request.META.get('HTTP_X_REAL_IP') or request.META.get('REMOTE_ADDR', '')
+
+
+class RateLimitedLoginView(LoginView):
+    """Dietro questo login c'è accesso a terminale/SFTP completo sugli host
+    registrati: limita i tentativi falliti per IP (finestra scorrevole)
+    invece di lasciare il login senza alcuna protezione anti-bruteforce."""
+
+    def _cache_key(self, request):
+        return f'login-attempts:{_client_ip(request)}'
+
+    def post(self, request, *args, **kwargs):
+        key = self._cache_key(request)
+        if cache.get(key, 0) >= LOGIN_RATE_LIMIT_MAX_ATTEMPTS:
+            form = self.get_form_class()(request=request)
+            form.add_error(None, 'Troppi tentativi falliti. Riprova più tardi.')
+            return self.render_to_response(self.get_context_data(form=form))
+        return super().post(request, *args, **kwargs)
+
+    def form_invalid(self, form):
+        key = self._cache_key(self.request)
+        cache.set(key, cache.get(key, 0) + 1, LOGIN_RATE_LIMIT_WINDOW_SECONDS)
+        return super().form_invalid(form)
+
+    def form_valid(self, form):
+        cache.delete(self._cache_key(self.request))
+        return super().form_valid(form)
 
 
 def _check_token(request):
