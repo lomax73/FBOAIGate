@@ -43,6 +43,9 @@ sudo -u fboaigate ssh-keygen -t ed25519 -f /opt/fboaigate/.ssh/console_service -
 cp .env.example .env   # poi valorizzare DJANGO_SECRET_KEY, DJANGO_ALLOWED_HOSTS=aigate.fbosolution.it,
                         # DB_*, CONSOLE_SSH_PRIVATE_KEY_PATH=/opt/fboaigate/.ssh/console_service
                         # CHANNELS_REDIS_URL vuoto: un solo processo Daphne, basta il layer in-memory
+                        # DJANGO_DEBUG=false — .env.example lo lascia a "true", NON dimenticarlo:
+                        # con DEBUG=True qualunque eccezione espone tutte le variabili
+                        # d'ambiente (SECRET_KEY, INTERNAL_API_TOKEN, DB_PASSWORD)
 sudo -u fboaigate venv/bin/python manage.py migrate
 sudo -u fboaigate venv/bin/python manage.py collectstatic --noinput
 sudo -u fboaigate venv/bin/python manage.py createsuperuser
