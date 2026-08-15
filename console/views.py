@@ -1,5 +1,5 @@
 from asgiref.sync import async_to_sync
-from django.contrib.auth.mixins import LoginRequiredMixin
+from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 from django.http import JsonResponse
 from django.shortcuts import get_object_or_404
 from django.urls import reverse_lazy
@@ -17,6 +17,15 @@ from hub.services import (
 )
 
 
+class SuperuserRequiredMixin(UserPassesTestMixin):
+    """Terminale e file manager danno accesso completo agli host: oltre al
+    login, richiede esplicitamente is_superuser (non c'è ancora un modello
+    di permessi per-Target, vedi RedFlag id 73)."""
+
+    def test_func(self):
+        return self.request.user.is_superuser
+
+
 class TargetListView(LoginRequiredMixin, ListView):
     model = Target
     template_name = 'console/target_list.html'
@@ -29,7 +38,7 @@ class TargetListView(LoginRequiredMixin, ListView):
         return targets
 
 
-class TerminalView(LoginRequiredMixin, DetailView):
+class TerminalView(LoginRequiredMixin, SuperuserRequiredMixin, DetailView):
     model = Target
     template_name = 'console/terminal.html'
     context_object_name = 'target'
@@ -52,6 +61,8 @@ class TargetResourcesView(View):
         user = await request.auser()
         if not user.is_authenticated:
             return JsonResponse({'error': 'non autenticato'}, status=401)
+        if not user.is_superuser:
+            return JsonResponse({'error': 'permesso negato'}, status=403)
 
         target = await Target.objects.filter(pk=pk).afirst()
         if target is None:
@@ -64,13 +75,13 @@ class TargetResourcesView(View):
         return JsonResponse(usage)
 
 
-class FileManagerView(LoginRequiredMixin, DetailView):
+class FileManagerView(LoginRequiredMixin, SuperuserRequiredMixin, DetailView):
     model = Target
     template_name = 'console/file_manager.html'
     context_object_name = 'target'
 
 
-class TargetFilesListView(LoginRequiredMixin, View):
+class TargetFilesListView(LoginRequiredMixin, SuperuserRequiredMixin, View):
     def get(self, request, pk):
         target = get_object_or_404(Target, pk=pk)
         path = request.GET.get('path', '')
@@ -81,7 +92,7 @@ class TargetFilesListView(LoginRequiredMixin, View):
         return JsonResponse(result)
 
 
-class TargetFilesMkdirView(LoginRequiredMixin, View):
+class TargetFilesMkdirView(LoginRequiredMixin, SuperuserRequiredMixin, View):
     def post(self, request, pk):
         target = get_object_or_404(Target, pk=pk)
         path = request.POST.get('path', '').rstrip('/')
@@ -96,7 +107,7 @@ class TargetFilesMkdirView(LoginRequiredMixin, View):
         return JsonResponse({'ok': True})
 
 
-class TargetFilesDeleteView(LoginRequiredMixin, View):
+class TargetFilesDeleteView(LoginRequiredMixin, SuperuserRequiredMixin, View):
     def post(self, request, pk):
         target = get_object_or_404(Target, pk=pk)
         path = request.POST.get('path', '')
@@ -109,7 +120,7 @@ class TargetFilesDeleteView(LoginRequiredMixin, View):
         return JsonResponse({'ok': True})
 
 
-class TargetFilesUploadView(LoginRequiredMixin, View):
+class TargetFilesUploadView(LoginRequiredMixin, SuperuserRequiredMixin, View):
     def post(self, request, pk):
         target = get_object_or_404(Target, pk=pk)
         path = request.POST.get('path', '')
