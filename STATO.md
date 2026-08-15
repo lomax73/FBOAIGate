@@ -126,9 +126,11 @@ Nginx (systemd `fboaigate-web.service`). Procedura completa in
 - **Certificato TLS vero** (Let's Encrypt, rinnovo automatico, scade
   2026-11-12) — il DNS si è propagato durante la sessione, sostituito il
   self-signed provvisorio, rimosso l'accesso via IP:porta usato nel frattempo.
-- **Login**: `admin` / `Faba7377` (password cambiata su richiesta esplicita
-  dell'utente — nota: stessa password usata per il sudo/SSH del NUC, riuso
-  segnalato ma voluto).
+- **Login**: `admin` / vedi password manager (password cambiata su richiesta
+  esplicita dell'utente — nota storica: era riusata per il sudo/SSH del NUC,
+  riuso segnalato ma voluto all'epoca; **non scrivere più credenziali reali
+  in chiaro in questo file o in altri file di documentazione/log versionati**,
+  usare un password manager o un file locale escluso da git).
 - **Fase 2 verificata end-to-end e ampliata oltre i criteri minimi**:
   - terminale via WebSocket → Nginx → Daphne → `asyncssh` → Target, chiave di
     servizio, sessioni loggate in `SessioneTerminale`;
