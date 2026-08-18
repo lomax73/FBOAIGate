@@ -7,7 +7,10 @@ from django.utils import timezone
 
 SSH_PORT = 22
 CHECK_TIMEOUT_SECONDS = 1.5
-RESOURCE_USAGE_COMMAND = "cat /proc/loadavg && echo '---' && free -m && echo '---' && df -h /"
+RESOURCE_USAGE_COMMAND = (
+    "cat /proc/loadavg && echo '---' && free -m && echo '---' && df -h / "
+    "&& echo '---' && (grep '^PRETTY_NAME=' /etc/os-release 2>/dev/null || uname -sr)"
+)
 
 
 def _connect(target):
@@ -57,7 +60,7 @@ async def fetch_resource_usage(target) -> dict:
 
 
 def _parse_resource_usage(output: str) -> dict:
-    loadavg_section, free_section, df_section = output.split('---')
+    loadavg_section, free_section, df_section, os_section = output.split('---')
 
     load1, load5, load15 = loadavg_section.split()[:3]
 
@@ -71,7 +74,17 @@ def _parse_resource_usage(output: str) -> dict:
         'load': {'1min': float(load1), '5min': float(load5), '15min': float(load15)},
         'memory': {'total_mb': int(mem_total), 'used_mb': int(mem_used), 'free_mb': int(mem_free)},
         'disk': {'size': disk_size, 'used': disk_used, 'avail': disk_avail, 'percent': disk_percent},
+        'os': _parse_os(os_section),
     }
+
+
+def _parse_os(section: str) -> str:
+    """PRETTY_NAME="Ubuntu 22.04.3 LTS" da /etc/os-release, oppure l'output
+    di `uname -sr` (es. "Linux 5.15.0-92-generic") se /etc/os-release manca."""
+    line = section.strip().splitlines()[0] if section.strip() else ''
+    if line.startswith('PRETTY_NAME='):
+        return line.split('=', 1)[1].strip().strip('"')
+    return line
 
 
 async def sftp_list_dir(target, path: str) -> dict:
