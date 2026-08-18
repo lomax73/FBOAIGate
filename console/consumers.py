@@ -32,6 +32,12 @@ def _tmux_attach_command(tab: str) -> str:
     tab_session = f'{TMUX_SESSION_NAME}-{tab}'
     return (
         f'tmux new-session -d -s {TMUX_SESSION_NAME} 2>/dev/null; '
+        # tmux ridisegna lo schermo per intero a ogni aggiornamento: lo
+        # scrollback locale di xterm.js non riflette una cronologia utile,
+        # quindi lo scroll va lasciato gestire a tmux (entra in copy-mode e
+        # scorre la sua history). Questo succede automaticamente alla
+        # rotellina del mouse solo se il mouse mode di tmux è attivo.
+        f'tmux set-option -g mouse on; '
         f'tmux new-window -dt {TMUX_SESSION_NAME} -n {tab} 2>/dev/null; '
         f'tmux new-session -d -s {tab_session} -t {TMUX_SESSION_NAME} 2>/dev/null; '
         f'tmux select-window -t {tab_session}:{tab}; '
