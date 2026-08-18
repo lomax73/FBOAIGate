@@ -11,6 +11,8 @@
 
 <div id="resources-panel" style="display:flex; gap:1.5rem; flex-wrap:wrap; background:#1e293b; border-radius:8px; padding:0.75rem 1rem; margin-bottom:1rem; font-size:0.9rem;">
     <div>🖥️ Sistema operativo: <strong id="res-os">—</strong></div>
+    <div>⏱️ Accensione: <strong id="res-uptime">—</strong></div>
+    <div>🌡️ Temperatura: <strong id="res-temp">—</strong></div>
     <div>⚙️ Carico: <strong id="res-load">—</strong></div>
     <div>🧠 Memoria: <strong id="res-mem">—</strong></div>
     <div>💽 Disco (/): <strong id="res-disk">—</strong></div>
@@ -74,12 +76,17 @@ document.addEventListener('DOMContentLoaded', function () {
             .then(function (data) {
                 if (data.error) {
                     document.getElementById('res-os').textContent = 'n/d';
+                    document.getElementById('res-uptime').textContent = 'n/d';
+                    document.getElementById('res-temp').textContent = 'n/d';
                     document.getElementById('res-load').textContent = 'n/d';
                     document.getElementById('res-mem').textContent = 'n/d';
                     document.getElementById('res-disk').textContent = 'n/d';
                     return;
                 }
                 document.getElementById('res-os').textContent = data.os || 'n/d';
+                document.getElementById('res-uptime').textContent = data.uptime || 'n/d';
+                document.getElementById('res-temp').textContent =
+                    data.temperature_c === null ? 'n/d' : data.temperature_c + ' °C';
                 document.getElementById('res-load').textContent =
                     data.load['1min'] + ' / ' + data.load['5min'] + ' / ' + data.load['15min'];
                 document.getElementById('res-mem').textContent =

@@ -9,7 +9,12 @@ SSH_PORT = 22
 CHECK_TIMEOUT_SECONDS = 1.5
 RESOURCE_USAGE_COMMAND = (
     "cat /proc/loadavg && echo '---' && free -m && echo '---' && df -h / "
-    "&& echo '---' && (grep '^PRETTY_NAME=' /etc/os-release 2>/dev/null || uname -sr)"
+    "&& echo '---' && (grep '^PRETTY_NAME=' /etc/os-release 2>/dev/null || uname -sr) "
+    "&& echo '---' && cat /proc/uptime "
+    # Sensore termico non garantito (tipicamente assente sulle VPS
+    # virtualizzate, presente su hardware fisico come il NUC): riga vuota se
+    # manca, gestita come "n/d" invece di inventare un valore.
+    "&& echo '---' && (cat /sys/class/thermal/thermal_zone0/temp 2>/dev/null || echo '')"
 )
 
 
@@ -60,7 +65,7 @@ async def fetch_resource_usage(target) -> dict:
 
 
 def _parse_resource_usage(output: str) -> dict:
-    loadavg_section, free_section, df_section, os_section = output.split('---')
+    loadavg_section, free_section, df_section, os_section, uptime_section, temp_section = output.split('---')
 
     load1, load5, load15 = loadavg_section.split()[:3]
 
@@ -75,6 +80,8 @@ def _parse_resource_usage(output: str) -> dict:
         'memory': {'total_mb': int(mem_total), 'used_mb': int(mem_used), 'free_mb': int(mem_free)},
         'disk': {'size': disk_size, 'used': disk_used, 'avail': disk_avail, 'percent': disk_percent},
         'os': _parse_os(os_section),
+        'uptime': _parse_uptime(uptime_section),
+        'temperature_c': _parse_temperature(temp_section),
     }
 
 
@@ -85,6 +92,31 @@ def _parse_os(section: str) -> str:
     if line.startswith('PRETTY_NAME='):
         return line.split('=', 1)[1].strip().strip('"')
     return line
+
+
+def _parse_uptime(section: str) -> str:
+    """/proc/uptime: secondi dall'avvio (primo campo) in formato leggibile."""
+    seconds = int(float(section.split()[0]))
+    days, rem = divmod(seconds, 86400)
+    hours, rem = divmod(rem, 3600)
+    minutes = rem // 60
+    parts = []
+    if days:
+        parts.append(f'{days}g')
+    if hours or days:
+        parts.append(f'{hours}h')
+    parts.append(f'{minutes}min')
+    return ' '.join(parts)
+
+
+def _parse_temperature(section: str) -> float | None:
+    """thermal_zone0/temp è in millesimi di grado. None se il sensore non
+    è disponibile (comune sulle VPS virtualizzate) invece di un valore
+    inventato — il chiamante lo mostra come "n/d"."""
+    raw = section.strip()
+    if not raw:
+        return None
+    return round(int(raw) / 1000, 1)
 
 
 async def sftp_list_dir(target, path: str) -> dict:
