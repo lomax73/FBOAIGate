@@ -54,6 +54,16 @@
     border-radius: 6px; padding: 0.35rem 0.75rem; cursor: pointer; font-size: 0.85rem;
 }
 .tab-btn.active { background: #2563eb; color: #fff; border-color: #2563eb; }
+
+/* xterm.js si affida allo scrollbar nativo del browser per il suo
+   viewport interno (.xterm-viewport), che su macOS resta sottile e
+   invisibile finché non si scrolla attivamente — sembra assente anche se
+   c'è. La rendiamo sempre visibile e coerente col tema scuro del terminale. */
+.xterm-viewport { scrollbar-width: thin; scrollbar-color: #475569 #0f172a; }
+.xterm-viewport::-webkit-scrollbar { width: 10px; }
+.xterm-viewport::-webkit-scrollbar-track { background: #0f172a; }
+.xterm-viewport::-webkit-scrollbar-thumb { background: #475569; border-radius: 5px; }
+.xterm-viewport::-webkit-scrollbar-thumb:hover { background: #64748b; }
 </style>
 
 <script>
