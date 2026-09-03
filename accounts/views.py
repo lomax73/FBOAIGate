@@ -1,6 +1,5 @@
 import json
 
-from django.conf import settings
 from django.contrib.auth.models import User
 from django.contrib.auth.views import LoginView
 from django.core.cache import cache
@@ -8,6 +7,8 @@ from django.http import JsonResponse
 from django.utils.decorators import method_decorator
 from django.views import View
 from django.views.decorators.csrf import csrf_exempt
+
+from .internal_auth import check_internal_token
 
 LOGIN_RATE_LIMIT_WINDOW_SECONDS = 3600
 LOGIN_RATE_LIMIT_MAX_ATTEMPTS = 10
@@ -46,14 +47,6 @@ class RateLimitedLoginView(LoginView):
         return super().form_valid(form)
 
 
-def _check_token(request):
-    expected = getattr(settings, 'INTERNAL_API_TOKEN', '')
-    provided = request.headers.get('Authorization', '')
-    if not expected or provided != f'Token {expected}':
-        return False
-    return True
-
-
 def _serialize(user):
     return {
         'id': user.id,
@@ -68,7 +61,7 @@ def _serialize(user):
 @method_decorator(csrf_exempt, name='dispatch')
 class InternalUserListView(View):
     def dispatch(self, request, *args, **kwargs):
-        if not _check_token(request):
+        if not check_internal_token(request):
             return JsonResponse({'detail': 'Non autorizzato.'}, status=403)
         return super().dispatch(request, *args, **kwargs)
 
@@ -97,7 +90,7 @@ class InternalUserListView(View):
 @method_decorator(csrf_exempt, name='dispatch')
 class InternalUserDetailView(View):
     def dispatch(self, request, *args, **kwargs):
-        if not _check_token(request):
+        if not check_internal_token(request):
             return JsonResponse({'detail': 'Non autorizzato.'}, status=403)
         return super().dispatch(request, *args, **kwargs)
 

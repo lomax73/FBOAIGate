@@ -125,3 +125,18 @@ dominio pubblico invece che tramite la porta interna.
 
 Infine, su FBOPortal (admin → catalogo → FBOAIGate): `internal_base_url =
 https://127.0.0.1:8452`, `api_token = <stesso token>`.
+
+## Widget "Server & VPS" su FBOPortal
+
+Oltre alla gestione utenti, la API interna espone due endpoint di sola
+lettura usati dal widget della home del Portale (nessuna configurazione Nginx
+extra: vivono sotto lo stesso `/api/internal/`, quindi passano dal vhost
+interno `127.0.0.1:8452` e sono già bloccati sul vhost pubblico):
+
+- `GET /api/internal/targets/` — elenco Target con stato online/offline
+  aggiornato al volo (TCP check sulla porta SSH, `hub/views.py:InternalTargetListView`);
+- `GET /api/internal/targets/<pk>/resources/` — carico/memoria/disco/os/uptime/temperatura
+  di un singolo Target (`hub/views.py:InternalTargetResourcesView`, connessione SSH
+  ad-hoc; il widget la chiama solo su richiesta).
+
+Entrambi richiedono lo stesso `INTERNAL_API_TOKEN` della gestione utenti.
