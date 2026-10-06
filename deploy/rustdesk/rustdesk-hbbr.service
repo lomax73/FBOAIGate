@@ -1,0 +1,10 @@
+[Unit]
+Description=RustDesk relay server (hbbr)
+After=network.target
+[Service]
+User=rustdesk
+WorkingDirectory=/opt/rustdesk
+ExecStart=/opt/rustdesk/hbbr -k _
+Restart=always
+[Install]
+WantedBy=multi-user.target

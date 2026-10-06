@@ -4,27 +4,36 @@ Usato dalla sezione **Assistenza** di FBOAIGate (manutenzione remota dei PC dei
 clienti). Non c'entra con la VPN WireGuard: i PC clienti restano fuori dalla VPN e
 si collegano in uscita al server RustDesk.
 
-## Installazione sul VPS
+## Stato in produzione (2026-10-06)
 
-1. DNS: nessun record nuovo, si riusa `aigate.fbosolution.it` (già puntato al VPS; le porte RustDesk non confliggono con Nginx su 80/443). Se in futuro si cambia nome, da
-   riportarlo nel compose e nel `.env`.
-2. `cd deploy/rustdesk && docker compose up -d`
-3. Firewall (ufw o equivalente) — porte da aprire:
-   - TCP `21115`, `21116`, `21117` (rendezvous/relay)
-   - UDP `21116`
-   - TCP `21118`, `21119` solo se serve il web client (non usato da FBOAIGate)
-4. Chiave pubblica generata al primo avvio: `cat data/id_ed25519.pub`
-5. `.env` di FBOAIGate:
-   ```
-   RUSTDESK_ID_SERVER=aigate.fbosolution.it
-   RUSTDESK_RELAY_SERVER=aigate.fbosolution.it
-   RUSTDESK_PUBLIC_KEY=<contenuto di id_ed25519.pub>
-   ```
-   poi `systemctl restart fboaigate-web.service`.
-6. Migrazione: `venv/bin/python manage.py migrate` (app `assistenza`).
+Sul VPS `94.177.161.127`, **binari nativi** `rustdesk-server` 1.1.16 come servizi
+systemd (Docker non è installato sul VPS, non l'abbiamo introdotto): utente di
+sistema `rustdesk`, cartella `/opt/rustdesk`, servizi `rustdesk-hbbs` e
+`rustdesk-hbbr` (unit in questa cartella). Nome del server: `aigate.fbosolution.it`
+(nessun DNS nuovo). `-k _` = i client senza la chiave del server vengono rifiutati.
 
-**Backup**: la cartella `data/` contiene la chiave privata del server. Se si perde,
-tutti i client vanno riconfigurati. Non versionarla (è in `.gitignore`).
+## Installazione (già fatta)
+
+```
+adduser --system --group --home /opt/rustdesk rustdesk
+# scaricare rustdesk-server-linux-amd64.zip dalla release GitHub, poi:
+install -o rustdesk -g rustdesk -m 755 amd64/hbbs amd64/hbbr /opt/rustdesk/
+cp deploy/rustdesk/*.service /etc/systemd/system/
+systemctl daemon-reload && systemctl enable --now rustdesk-hbbr rustdesk-hbbs
+ufw allow 21115:21117/tcp && ufw allow 21116/udp
+cat /opt/rustdesk/id_ed25519.pub     # chiave pubblica per i client
+```
+
+`.env` di FBOAIGate:
+```
+RUSTDESK_ID_SERVER=aigate.fbosolution.it
+RUSTDESK_RELAY_SERVER=aigate.fbosolution.it
+RUSTDESK_PUBLIC_KEY=<contenuto di id_ed25519.pub>
+```
+poi `migrate` e `systemctl restart fboaigate-web.service`.
+
+**Backup**: `/opt/rustdesk/id_ed25519` è la chiave privata del server. Se si perde,
+tutti i client vanno riconfigurati.
 
 ## Uso
 
@@ -33,7 +42,6 @@ tutti i client vanno riconfigurati. Non versionarla (è in `.gitignore`).
   server, imposta una password permanente casuale e stampa ID + password.
 - **Assistenza → + Postazione**: registra cliente e ID RustDesk.
 - **Connetti**: apre il client RustDesk locale (`rustdesk://ID`). Serve RustDesk
-  installato sul computer dell'operatore, configurato con lo stesso server e chiave.
-  La password permanente **non** è salvata in FBOAIGate: va salvata nel client RustDesk
-  dell'operatore (o in un password manager).
+  installato sul computer dell'operatore, con lo stesso server e la stessa chiave.
+  La password permanente **non** è salvata in FBOAIGate.
 - Accesso alla sezione: solo `is_superuser`, come terminale e file manager.

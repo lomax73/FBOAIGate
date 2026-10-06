@@ -1,0 +1,10 @@
+[Unit]
+Description=RustDesk ID/Rendezvous server (hbbs)
+After=network.target
+[Service]
+User=rustdesk
+WorkingDirectory=/opt/rustdesk
+ExecStart=/opt/rustdesk/hbbs -r aigate.fbosolution.it:21117 -k _
+Restart=always
+[Install]
+WantedBy=multi-user.target

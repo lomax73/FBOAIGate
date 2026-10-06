@@ -13,4 +13,3 @@ media/
 .idea/
 .vscode/
 .claude/
-deploy/rustdesk/data/
