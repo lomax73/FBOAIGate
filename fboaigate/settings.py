@@ -55,6 +55,13 @@ CONSOLE_SSH_PRIVATE_KEY_PATH = os.environ.get(
 INTERNAL_API_TOKEN = os.environ.get('INTERNAL_API_TOKEN', '')
 
 
+# Server RustDesk self-hosted (app "assistenza"): usati per generare gli script di
+# onboarding dei PC clienti. La chiave pubblica è il contenuto di id_ed25519.pub di hbbs.
+RUSTDESK_ID_SERVER = os.environ.get('RUSTDESK_ID_SERVER', '')
+RUSTDESK_RELAY_SERVER = os.environ.get('RUSTDESK_RELAY_SERVER', '')
+RUSTDESK_PUBLIC_KEY = os.environ.get('RUSTDESK_PUBLIC_KEY', '')
+
+
 # Application definition
 
 INSTALLED_APPS = [
@@ -69,6 +76,7 @@ INSTALLED_APPS = [
     'console',
     'bot',
     'accounts',
+    'assistenza',
 ]
 
 MIDDLEWARE = [

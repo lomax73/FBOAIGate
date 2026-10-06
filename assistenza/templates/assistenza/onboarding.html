@@ -1,0 +1,18 @@
+{% extends "base.html" %}
+{% block title %}Onboarding RustDesk — FBOAIGate{% endblock %}
+{% block content %}
+<p><a href="{% url 'assistenza-list' %}">&larr; Assistenza</a></p>
+<h1>Onboarding PC cliente</h1>
+{% if configurato %}
+<p>Lo script installa RustDesk, lo collega al nostro server, imposta una password permanente casuale e
+stampa <strong>ID</strong> e <strong>password</strong>: annotali e registra la postazione.</p>
+<p style="display:flex;gap:0.5rem;">
+    <a class="btn" href="{% url 'assistenza-script' 'windows' %}">Script Windows (.ps1)</a>
+    <a class="btn" href="{% url 'assistenza-script' 'linux' %}">Script Linux (.sh)</a>
+</p>
+<p style="font-size:0.85rem;color:#9fb8c4;">Windows: PowerShell come Amministratore. Linux: <code>sudo bash fbo-rustdesk-linux.sh</code> (Debian/Ubuntu).</p>
+{% else %}
+<p>Server RustDesk non configurato: imposta <code>RUSTDESK_ID_SERVER</code> e <code>RUSTDESK_PUBLIC_KEY</code> nel <code>.env</code>
+(vedi <code>deploy/rustdesk/README.md</code>).</p>
+{% endif %}
+{% endblock %}

@@ -1,0 +1,11 @@
+{% extends "base.html" %}
+{% block title %}Elimina postazione — FBOAIGate{% endblock %}
+{% block content %}
+<p><a href="{% url 'assistenza-list' %}">&larr; Assistenza</a></p>
+<h1>Eliminare “{{ object }}”?</h1>
+<p>Viene rimossa solo la voce in FBOAIGate, non RustDesk dal PC del cliente.</p>
+<form method="post">
+    {% csrf_token %}
+    <button class="btn btn-danger" type="submit">Elimina</button>
+</form>
+{% endblock %}

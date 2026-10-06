@@ -1,0 +1,14 @@
+{% extends "base.html" %}
+{% block title %}{{ titolo }} — FBOAIGate{% endblock %}
+{% block content %}
+<p><a href="{% url 'assistenza-list' %}">&larr; Assistenza</a></p>
+<h1>{{ titolo }}</h1>
+<form method="post">
+    {% csrf_token %}
+    {{ form.as_p }}
+    <button class="btn" type="submit">Salva</button>
+    {% if object and object.rustdesk_id %}
+    <a class="btn btn-danger" href="{% url 'assistenza-postazione-delete' object.pk %}">Elimina</a>
+    {% endif %}
+</form>
+{% endblock %}

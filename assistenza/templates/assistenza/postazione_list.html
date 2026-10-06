@@ -1,0 +1,38 @@
+{% extends "base.html" %}
+{% block title %}Assistenza — FBOAIGate{% endblock %}
+{% block content %}
+<h1>Assistenza remota</h1>
+<form method="get" style="display:flex;gap:0.5rem;margin-bottom:1rem;">
+    <input type="search" name="q" value="{{ q }}" placeholder="Cerca cliente, PC o ID" style="max-width:320px;">
+    <button class="btn" type="submit">Cerca</button>
+    <span style="flex:1"></span>
+    <a class="btn" href="{% url 'assistenza-postazione-new' %}">+ Postazione</a>
+    <a class="btn" href="{% url 'assistenza-cliente-new' %}">+ Cliente</a>
+    <a class="btn" href="{% url 'assistenza-onboarding' %}">Onboarding</a>
+</form>
+{% if postazioni %}
+<table>
+    <thead><tr><th>Cliente</th><th>PC</th><th>ID RustDesk</th><th>Sistema</th><th>Ultima connessione</th><th></th><th></th></tr></thead>
+    <tbody>
+    {% for p in postazioni %}
+        <tr>
+            <td><a href="{% url 'assistenza-cliente-edit' p.cliente.pk %}">{{ p.cliente.nome }}</a></td>
+            <td>{{ p.nome }}</td>
+            <td>{{ p.rustdesk_id }}</td>
+            <td>{{ p.get_sistema_display }}</td>
+            <td>{{ p.ultima_connessione|default:"mai" }}</td>
+            <td>
+                <form method="post" action="{% url 'assistenza-connetti' p.pk %}" style="margin:0">
+                    {% csrf_token %}<button class="btn" type="submit">Connetti</button>
+                </form>
+            </td>
+            <td><a href="{% url 'assistenza-postazione-edit' p.pk %}">Modifica</a></td>
+        </tr>
+    {% endfor %}
+    </tbody>
+</table>
+<p style="font-size:0.8rem;color:#9fb8c4;">“Connetti” apre il client RustDesk installato su questo computer.</p>
+{% else %}
+<p>Nessuna postazione registrata.</p>
+{% endif %}
+{% endblock %}

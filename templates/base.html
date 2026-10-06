@@ -132,6 +132,7 @@
     {% if user.is_authenticated %}
     <nav>
         <a href="{% url 'target-list' %}">Host</a>
+        {% if user.is_superuser %}<a href="{% url 'assistenza-list' %}">Assistenza</a>{% endif %}
     </nav>
     <div class="user-box">
         <span>{{ user.username }}</span>

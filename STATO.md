@@ -177,6 +177,16 @@ elimina utenti su FBOAIGate usando lo stesso client già usato per le altre
 app (`useradmin/services.py`), nessuna modifica al codice di FBOPortal.
 Dettagli in `fase_3_integrazione_portal_terminato.md` e `deploy/README.md`.
 
+## Assistenza remota con RustDesk — in sviluppo (2026-10-06)
+
+App `assistenza/`: anagrafica clienti e postazioni (ID RustDesk), pulsante
+**Connetti** (`rustdesk://ID`, registra l'ultima connessione), generatore di script
+di onboarding Windows (.ps1) e Linux (.sh). Solo `is_superuser`. I PC clienti **non**
+sono `Target`: niente SSH né VPN, si collegano in uscita al server RustDesk
+self-hosted (`deploy/rustdesk/`, hbbs/hbbr). La password permanente non è salvata nel DB.
+**Non ancora fatto**: deploy del server sul VPS (DNS, firewall, chiave), `.env` di
+produzione, migrazione, test degli script su PC reali.
+
 ## Prossimo passo
 
 1. **Fase 1**: tunnel in osservazione, poi punto 5 (firewall + lockdown SSH
