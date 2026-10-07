@@ -34,6 +34,7 @@ class Postazione(models.Model):
     sistema = models.CharField(max_length=10, choices=SISTEMI, default='windows')
     note = models.TextField(blank=True)
     ultima_connessione = models.DateTimeField(null=True, blank=True)
+    ultimo_online = models.DateTimeField(null=True, blank=True, help_text='Ultima volta visto online dalla lista.')
     creato_il = models.DateTimeField(auto_now_add=True)
 
     class Meta:

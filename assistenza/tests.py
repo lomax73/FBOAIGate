@@ -57,3 +57,35 @@ class AssistenzaTests(TestCase):
     def test_script_non_configurato_rimanda(self):
         self.client.force_login(self.admin)
         self.assertEqual(self.client.get(reverse('assistenza-script', args=['windows'])).status_code, 302)
+
+
+class StatoOnlineTests(TestCase):
+    def test_classificazione_risposte_hbbs(self):
+        from . import services
+        # risposte reali di hbbs osservate in produzione
+        self.assertFalse(services._classify(b'Z\x02\x18\x02'))   # OFFLINE
+        self.assertFalse(services._classify(b'Z\x00'))            # ID_NOT_EXIST
+        self.assertIsNone(services._classify(b'Z\x02\x18\x03'))   # LICENSE_MISMATCH
+        self.assertTrue(services._classify(b'Z\x05\n\x03abc'))    # risposta di successo
+
+    def test_frame_e_varint(self):
+        from . import services
+        self.assertEqual(services._frame(b'abcd'), b'\x10abcd')
+        self.assertEqual(services._varint(300), b'\xac\x02')
+
+    @override_settings(RUSTDESK_ID_SERVER='127.0.0.1', RUSTDESK_PUBLIC_KEY='K=')
+    def test_lista_mostra_stato(self):
+        from unittest import mock
+        admin = get_user_model().objects.create_superuser('a2', password='x')
+        c = Cliente.objects.create(nome='C')
+        Postazione.objects.create(cliente=c, nome='Acceso', rustdesk_id='111111111')
+        Postazione.objects.create(cliente=c, nome='Spento', rustdesk_id='222222222')
+        async def finto(ids):
+            return {'111111111': True, '222222222': False}
+        self.client.force_login(admin)
+        with mock.patch('assistenza.services.fetch_online_states', finto):
+            r = self.client.get(reverse('assistenza-list'))
+        self.assertContains(r, 'Online')
+        self.assertContains(r, 'Offline')
+        self.assertIsNotNone(Postazione.objects.get(rustdesk_id='111111111').ultimo_online)
+        self.assertIsNone(Postazione.objects.get(rustdesk_id='222222222').ultimo_online)

@@ -60,6 +60,8 @@ INTERNAL_API_TOKEN = os.environ.get('INTERNAL_API_TOKEN', '')
 RUSTDESK_ID_SERVER = os.environ.get('RUSTDESK_ID_SERVER', '')
 RUSTDESK_RELAY_SERVER = os.environ.get('RUSTDESK_RELAY_SERVER', '')
 RUSTDESK_PUBLIC_KEY = os.environ.get('RUSTDESK_PUBLIC_KEY', '')
+# Host a cui chiedere lo stato dei PC (porta 21116); vuoto = RUSTDESK_ID_SERVER.
+RUSTDESK_STATUS_HOST = os.environ.get('RUSTDESK_STATUS_HOST', '')
 
 
 # Application definition

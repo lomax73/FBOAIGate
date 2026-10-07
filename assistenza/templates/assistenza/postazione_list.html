@@ -12,14 +12,16 @@
 </form>
 {% if postazioni %}
 <table>
-    <thead><tr><th>Cliente</th><th>PC</th><th>ID RustDesk</th><th>Sistema</th><th>Ultima connessione</th><th></th><th></th></tr></thead>
+    <thead><tr><th>Stato</th><th>Cliente</th><th>PC</th><th>ID RustDesk</th><th>Sistema</th><th>Visto online</th><th>Ultima connessione</th><th></th><th></th></tr></thead>
     <tbody>
     {% for p in postazioni %}
         <tr>
+            <td>{% if p.online %}<span class="dot dot-online"></span>Online{% elif p.online is None %}<span class="dot dot-offline"></span>n/d{% else %}<span class="dot dot-offline"></span>Offline{% endif %}</td>
             <td><a href="{% url 'assistenza-cliente-edit' p.cliente.pk %}">{{ p.cliente.nome }}</a></td>
             <td>{{ p.nome }}</td>
             <td>{{ p.rustdesk_id }}</td>
             <td>{{ p.get_sistema_display }}</td>
+            <td>{{ p.ultimo_online|default:"mai" }}</td>
             <td>{{ p.ultima_connessione|default:"mai" }}</td>
             <td>
                 <form method="post" action="{% url 'assistenza-connetti' p.pk %}" style="margin:0">
@@ -31,7 +33,7 @@
     {% endfor %}
     </tbody>
 </table>
-<p style="font-size:0.8rem;color:#9fb8c4;">“Connetti” apre il client RustDesk installato su questo computer.</p>
+<p style="font-size:0.8rem;color:#9fb8c4;">Lo stato viene controllato solo quando apri o ricarichi questa pagina. “Connetti” apre il client RustDesk installato su questo computer.</p>
 {% else %}
 <p>Nessuna postazione registrata.</p>
 {% endif %}

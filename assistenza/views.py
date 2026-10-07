@@ -1,3 +1,4 @@
+from asgiref.sync import async_to_sync
 from django.contrib import messages
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.http import HttpResponse, HttpResponseRedirect
@@ -9,7 +10,7 @@ from django.views.generic import CreateView, DeleteView, ListView, TemplateView,
 
 from console.views import SuperuserRequiredMixin
 
-from . import scripts
+from . import scripts, services
 from .forms import ClienteForm, PostazioneForm
 from .models import Cliente, Postazione
 
@@ -37,6 +38,22 @@ class PostazioneListView(Base, ListView):
     def get_context_data(self, **kwargs):
         ctx = super().get_context_data(**kwargs)
         ctx['q'] = self.request.GET.get('q', '')
+        postazioni = list(ctx['postazioni'])
+        if postazioni and scripts.is_configured():
+            states = async_to_sync(services.fetch_online_states)([p.rustdesk_id for p in postazioni])
+            now = timezone.now()
+            seen = []
+            for p in postazioni:
+                p.online = states.get(p.rustdesk_id)
+                if p.online:
+                    p.ultimo_online = now
+                    seen.append(p)
+            if seen:
+                Postazione.objects.bulk_update(seen, ['ultimo_online'])
+        else:
+            for p in postazioni:
+                p.online = None
+        ctx['postazioni'] = postazioni
         return ctx
 
 
