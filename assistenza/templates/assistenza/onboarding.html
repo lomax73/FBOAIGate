@@ -10,8 +10,11 @@ stampa <strong>ID</strong> e <strong>password</strong>: annotali e registra la p
     <a class="btn" href="{% url 'assistenza-script' 'windows' %}">Script Windows (.ps1)</a>
     <a class="btn" href="{% url 'assistenza-script' 'linux' %}">Script Linux (.sh)</a>
 </p>
-<p style="font-size:0.85rem;color:#9fb8c4;">Windows: PowerShell come Amministratore, nella cartella del file: prima <code>Unblock-File .\rd-win.ps1</code>, poi <code>powershell -ExecutionPolicy Bypass -File .\rd-win.ps1</code>.
-Se la policy blocca ancora lo script, apri il file in Blocco note, copia tutto e incollalo nella finestra PowerShell.
+<p style="font-size:0.85rem;color:#9fb8c4;">Windows: PowerShell come Amministratore, nella cartella del file, poi in sequenza:
+<code>Unblock-File .\rd-win.ps1</code> &middot;
+<code>Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass -Force</code> &middot;
+<code>.\rd-win.ps1</code>.
+Se la policy blocca ancora, apri il file in Blocco note, copia tutto e incollalo nella finestra PowerShell.
 Linux: <code>sudo bash rd-linux.sh</code> (Debian/Ubuntu).</p>
 {% endif %}
 <h2 style="margin-top:2rem;">Modalità manuale</h2>

@@ -64,11 +64,15 @@ attivo**, puntato al nostro server, password permanente impostata, ID annotato.
 ### A. Con lo script (consigliata, password casuale)
 **Assistenza → Onboarding** → scarica lo script.
 - **Windows**: PowerShell **come Amministratore**, nella cartella dove è stato scaricato lo script.
-  1. **Sblocca il file** (Windows lo marca come scaricato da Internet): `Unblock-File .\rd-win.ps1`
-  2. Lancialo: `powershell -ExecutionPolicy Bypass -File .\rd-win.ps1`
-  3. Se continua a bloccare (policy imposta da criterio di gruppo/antivirus, verifica con
-     `Get-ExecutionPolicy -List`): aprire lo script in Blocco note, copiare tutto e
-     **incollarlo nella finestra PowerShell** (non passa dal controllo sui file). Metodo verificato.
+  Sequenza verificata (sblocca il file, abilita gli script solo per questa finestra, lancia):
+  ```
+  Unblock-File .\rd-win.ps1
+  Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass -Force
+  .\rd-win.ps1
+  ```
+  La modifica di policy vale solo finché la finestra resta aperta. Se la policy è imposta
+  da un criterio di gruppo/antivirus (`Get-ExecutionPolicy -List`) e blocca comunque:
+  aprire lo script in Blocco note, copiare tutto e incollarlo nella finestra PowerShell.
 - **Linux (Debian/Ubuntu)**: `sudo bash rd-linux.sh` (non ancora provato su
   una macchina reale).
 

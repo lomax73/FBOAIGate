@@ -27,7 +27,8 @@ def windows_script():
     v = _server_values()
     return f'''# Onboarding RustDesk (FBOAIGate) - eseguire come Amministratore.
 # Unblock-File .\\rd-win.ps1
-# powershell -ExecutionPolicy Bypass -File .\\rd-win.ps1
+# Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass -Force
+# .\\rd-win.ps1
 $ErrorActionPreference = 'Stop'
 $IdServer    = '{v["id_server"]}'
 $RelayServer = '{v["relay_server"]}'
