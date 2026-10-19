@@ -1,4 +1,5 @@
 from asgiref.sync import async_to_sync
+from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.http import HttpResponse, HttpResponseRedirect
@@ -114,6 +115,8 @@ class OnboardingView(Base, TemplateView):
     def get_context_data(self, **kwargs):
         ctx = super().get_context_data(**kwargs)
         ctx['configurato'] = scripts.is_configured()
+        ctx['id_server'] = settings.RUSTDESK_ID_SERVER
+        ctx['public_key'] = settings.RUSTDESK_PUBLIC_KEY
         return ctx
 
 

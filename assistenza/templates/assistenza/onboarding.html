@@ -10,8 +10,19 @@ stampa <strong>ID</strong> e <strong>password</strong>: annotali e registra la p
     <a class="btn" href="{% url 'assistenza-script' 'windows' %}">Script Windows (.ps1)</a>
     <a class="btn" href="{% url 'assistenza-script' 'linux' %}">Script Linux (.sh)</a>
 </p>
-<p style="font-size:0.85rem;color:#9fb8c4;">Windows: PowerShell come Amministratore. Linux: <code>sudo bash fbo-rustdesk-linux.sh</code> (Debian/Ubuntu).</p>
-{% else %}
+<p style="font-size:0.85rem;color:#9fb8c4;">Windows: PowerShell come Amministratore, poi <code>powershell -ExecutionPolicy Bypass -File .\file.ps1</code>.
+Se la policy blocca ancora lo script, apri il file in Blocco note, copia tutto e incollalo nella finestra PowerShell.
+Linux: <code>sudo bash fbo-rustdesk-linux.sh</code> (Debian/Ubuntu).</p>
+{% endif %}
+<h2 style="margin-top:2rem;">Modalità manuale</h2>
+<p style="font-size:0.9rem;">Se non puoi eseguire lo script: installa RustDesk dal sito scegliendo <strong>Installa</strong>, poi:</p>
+<ol style="font-size:0.9rem;line-height:1.6;">
+    <li>⋮ → <strong>Rete</strong> → sblocca → Server ID e Server relay: <code>{{ id_server }}</code>, Key: <code>{{ public_key }}</code> → Applica (in basso deve comparire “Pronto”).</li>
+    <li>⋮ → <strong>Sicurezza</strong> → sblocca → solo password permanente → imposta una password lunga e salvala nel password manager.</li>
+    <li>Verifica che il <strong>servizio</strong> sia abilitato (serve per l’accesso con utente scollegato e dopo il riavvio).</li>
+    <li>Copia l’ID e registra la postazione.</li>
+</ol>
+{% if not configurato %}
 <p>Server RustDesk non configurato: imposta <code>RUSTDESK_ID_SERVER</code> e <code>RUSTDESK_PUBLIC_KEY</code> nel <code>.env</code>
 (vedi <code>deploy/rustdesk/README.md</code>).</p>
 {% endif %}

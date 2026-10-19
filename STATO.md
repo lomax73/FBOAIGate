@@ -189,8 +189,12 @@ sul VPS, vedi `deploy/rustdesk/README.md`). La password permanente non è salvat
 Verificato end-to-end con un PC Windows reale e un Mac come postazione operatore
 (onboarding con script, registrazione, Connetti). Lo script Windows è stato corretto
 dopo il primo test (blocco di `Start-Process -Wait`, timeout sui comandi).
+Stato online/offline per PC (2026-10-19): colonna in lista, controllo solo all'apertura
+della pagina, via richiesta a hbbs (nessun polling). Onboarding Windows: se la policy
+PowerShell blocca lo script funziona incollarlo nella finestra; esiste anche la
+modalità manuale (documentata in `deploy/rustdesk/README.md` e nella pagina Onboarding).
 **Non ancora provato**: script Linux su una macchina reale, riconnessione dopo
-riavvio del PC cliente, accesso con utente scollegato.
+riavvio del PC cliente, accesso con utente scollegato, stato Online con PC acceso.
 **Backup da fare**: `/opt/rustdesk/id_ed25519` (chiave privata del server).
 
 ## Prossimo passo
