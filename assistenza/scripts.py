@@ -146,3 +146,55 @@ echo "=== ANNOTA QUESTI DATI ==="
 echo "ID RustDesk : $ID"
 echo "Password    : $PASSWORD"
 '''
+
+
+def comandi_txt():
+    """Promemoria con i comandi da copiare, da consegnare/inviare insieme allo script."""
+    testo = """ONBOARDING RUSTDESK - COMANDI DA COPIARE
+========================================
+
+WINDOWS (file: rd-win.ps1)
+--------------------------
+1. Apri PowerShell come Amministratore
+   (clic destro sul menu Start > Windows PowerShell (Amministratore)).
+2. Vai nella cartella dove hai salvato lo script, ad esempio il Desktop:
+
+   cd $env:USERPROFILE\\Desktop
+
+3. Esegui, uno dopo l'altro:
+
+   Unblock-File .\\rd-win.ps1
+   Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass -Force
+   .\\rd-win.ps1
+
+(La modifica di policy vale solo per questa finestra, non cambia il PC.)
+
+4. Alla fine compaiono ID e Password sotto "ANNOTA QUESTI DATI":
+   copiali e conservali.
+
+Se Windows blocca ancora lo script: apri rd-win.ps1 con Blocco note,
+seleziona tutto, copia e incolla nella finestra PowerShell, poi premi Invio.
+
+
+LINUX Debian/Ubuntu (file: rd-linux.sh)
+---------------------------------------
+   cd ~/Scaricati
+   sudo bash rd-linux.sh
+
+Alla fine compaiono ID e Password sotto "ANNOTA QUESTI DATI".
+
+
+MODALITA' MANUALE (se non puoi eseguire lo script)
+--------------------------------------------------
+1. Installa RustDesk da rustdesk.com scegliendo "Installa".
+2. Menu (tre puntini) > Rete > sblocca, poi imposta:
+     Server ID  : {id_server}
+     Server relay: {id_server}
+     Key        : {key}
+   Applica: in basso deve comparire "Pronto".
+3. Menu > Sicurezza > sblocca > solo password permanente > imposta una
+   password lunga e salvala nel password manager.
+4. Verifica che il servizio sia abilitato.
+5. Copia l'ID e registralo in FBOAIGate (Assistenza > + Postazione).
+""".format(id_server=settings.RUSTDESK_ID_SERVER, key=settings.RUSTDESK_PUBLIC_KEY)
+    return testo.replace('\n', '\r\n')

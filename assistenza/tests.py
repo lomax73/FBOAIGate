@@ -53,6 +53,16 @@ class AssistenzaTests(TestCase):
             self.assertIn('rd.example.it', body)
             self.assertIn('KEY123=', body)
 
+    @override_settings(RUSTDESK_ID_SERVER='rd.example.it', RUSTDESK_PUBLIC_KEY='KEY123=')
+    def test_file_comandi(self):
+        self.client.force_login(self.admin)
+        r = self.client.get(reverse('assistenza-script', args=['comandi']))
+        body = r.content.decode()
+        self.assertIn('rd-comandi.txt', r['Content-Disposition'])
+        self.assertIn('Unblock-File .\\rd-win.ps1', body)
+        self.assertIn('KEY123=', body)
+        self.assertIn('\r\n', body)
+
     @override_settings(RUSTDESK_ID_SERVER='', RUSTDESK_PUBLIC_KEY='')
     def test_script_non_configurato_rimanda(self):
         self.client.force_login(self.admin)

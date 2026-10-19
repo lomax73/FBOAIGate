@@ -129,6 +129,8 @@ class ScriptDownloadView(Base, View):
             body, name = scripts.windows_script(), 'rd-win.ps1'
         elif sistema == 'linux':
             body, name = scripts.linux_script(), 'rd-linux.sh'
+        elif sistema == 'comandi':
+            body, name = scripts.comandi_txt(), 'rd-comandi.txt'
         else:
             return HttpResponse(status=404)
         response = HttpResponse(body, content_type='text/plain; charset=utf-8')
