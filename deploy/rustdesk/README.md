@@ -64,14 +64,14 @@ attivo**, puntato al nostro server, password permanente impostata, ID annotato.
 ### A. Con lo script (consigliata, password casuale)
 **Assistenza → Onboarding** → scarica lo script.
 - **Windows**: PowerShell **come Amministratore**.
-  1. Prova: `powershell -ExecutionPolicy Bypass -File .\fbo-rust.ps1`
-  2. Se dice "non è firmato digitalmente": `Unblock-File .\fbo-rust.ps1`, poi
-     `Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass -Force` e `.\fbo-rust.ps1`.
+  1. Prova: `powershell -ExecutionPolicy Bypass -File .\rd-win.ps1`
+  2. Se dice "non è firmato digitalmente": `Unblock-File .\rd-win.ps1`, poi
+     `Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass -Force` e `.\rd-win.ps1`.
   3. Se la policy è imposta da un criterio di gruppo/antivirus (verifica con
      `Get-ExecutionPolicy -List`) e continua a bloccare: aprire lo script in Blocco
      note, copiare tutto e **incollarlo nella finestra PowerShell** (non passa dal
      controllo sui file). Metodo verificato.
-- **Linux (Debian/Ubuntu)**: `sudo bash fbo-rustdesk-linux.sh` (non ancora provato su
+- **Linux (Debian/Ubuntu)**: `sudo bash rd-linux.sh` (non ancora provato su
   una macchina reale).
 
 Lo script stampa ID e password sotto "ANNOTA QUESTI DATI": salvare la password nel

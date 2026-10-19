@@ -126,9 +126,9 @@ class ScriptDownloadView(Base, View):
             messages.error(request, 'Server RustDesk non configurato (RUSTDESK_ID_SERVER / RUSTDESK_PUBLIC_KEY nel .env).')
             return HttpResponseRedirect(reverse('assistenza-onboarding'))
         if sistema == 'windows':
-            body, name = scripts.windows_script(), 'fbo-rustdesk-windows.ps1'
+            body, name = scripts.windows_script(), 'rd-win.ps1'
         elif sistema == 'linux':
-            body, name = scripts.linux_script(), 'fbo-rustdesk-linux.sh'
+            body, name = scripts.linux_script(), 'rd-linux.sh'
         else:
             return HttpResponse(status=404)
         response = HttpResponse(body, content_type='text/plain; charset=utf-8')
